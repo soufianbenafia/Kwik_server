@@ -672,7 +672,7 @@ public class QuicClientConnectionImpl extends QuicConnectionImpl implements Quic
         sender.setReceiverMaxAckDelay(peerTransportParams.getMaxAckDelay());
         sourceConnectionIds.setActiveLimit(peerTransportParams.getActiveConnectionIdLimit());
 
-        determineIdleTimeout(transportParams.getMaxIdleTimeout(), peerTransportParams.getMaxIdleTimeout());
+        determineIdleTimeout(transportParams.getMaxIdleTimeout(), peerTransportParams.getMaxIdleTimeout(),null);
 
         destConnectionIds.setInitialStatelessResetToken(peerTransportParams.getStatelessResetToken());
 

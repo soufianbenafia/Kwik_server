@@ -71,6 +71,7 @@ public class ServerConnectionThread implements ServerConnectionProxy {
     @Override
     public void terminate() {
         connectionReceiverThread.interrupt();
+        System.out.println("finished");
     }
 
     private void process() {

@@ -21,6 +21,7 @@ package net.luminis.quic;
 import net.luminis.quic.log.Logger;
 import net.luminis.quic.packet.QuicPacket;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,6 +37,7 @@ public class IdleTimer {
     private volatile IntSupplier ptoSupplier;
     private volatile Instant lastAction;
     private volatile boolean enabled;
+    private CSVLogger csvLogger;
 
 
     public IdleTimer(QuicConnectionImpl connection, Logger logger) {
@@ -52,7 +54,10 @@ public class IdleTimer {
         lastAction = Instant.now();
     }
 
-    void setIdleTimeout(long idleTimeoutInMillis) {
+    void setIdleTimeout(long idleTimeoutInMillis, CSVLogger csvLogger) {
+        if(this.csvLogger == null) {
+            this.csvLogger = csvLogger;
+        }
         if (! enabled) {
             enabled = true;
             timeout = idleTimeoutInMillis;
@@ -82,6 +87,14 @@ public class IdleTimer {
                 // to be at least three times the current Probe Timeout (PTO)
                 if (lastAction.plusMillis(3 * currentPto).isBefore(now)) {
                     timer.cancel();
+                    if(csvLogger != null) {
+                        csvLogger.setValidated("false");
+                        try {
+                            csvLogger.write();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     connection.silentlyCloseConnection(timeout + currentPto);
                 }
             }}

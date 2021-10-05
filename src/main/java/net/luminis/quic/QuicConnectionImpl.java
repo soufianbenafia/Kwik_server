@@ -452,7 +452,7 @@ public abstract class QuicConnectionImpl implements QuicConnection, FrameProcess
         return cryptoStreams.get(encryptionLevel.ordinal());
     }
 
-    protected void determineIdleTimeout(long maxIdleTimout, long peerMaxIdleTimeout) {
+    protected void determineIdleTimeout(long maxIdleTimout, long peerMaxIdleTimeout,CSVLogger csvLogger) {
         // https://tools.ietf.org/html/draft-ietf-quic-transport-31#section-10.1
         // "If a max_idle_timeout is specified by either peer in its transport parameters (Section 18.2), the
         //  connection is silently closed and its state is discarded when it remains idle for longer than the minimum
@@ -465,7 +465,7 @@ public abstract class QuicConnectionImpl implements QuicConnection, FrameProcess
         if (idleTimeout != 0) {
             log.debug("Effective idle timeout is " + idleTimeout);
             // Initialise the idle timer that will take care of (silently) closing connection if idle longer than idle timeout
-            idleTimer.setIdleTimeout(idleTimeout);
+            idleTimer.setIdleTimeout(idleTimeout,csvLogger);
         }
         else {
             // Both or 0 or not set:

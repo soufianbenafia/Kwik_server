@@ -80,21 +80,31 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
     private int maxIdleTimeoutInSeconds;
     private volatile long bytesReceived;
     private volatile boolean addressValidated;
+    private final CSVLogger csvLogger;
 
 
     protected ServerConnectionImpl(Version quicVersion, DatagramSocket serverSocket, InetSocketAddress initialClientAddress,
                                    byte[] connectionId, byte[] dcid, byte[] originalDcid, TlsServerEngineFactory tlsServerEngineFactory,
                                    boolean retryRequired, ApplicationProtocolRegistry applicationProtocolRegistry,
-                                   Integer initialRtt, Consumer<byte[]> closeCallback, Logger log) {
+                                   Integer initialRtt, Consumer<byte[]> closeCallback, Logger log,Instant instant) {
         super(quicVersion, Role.Server, null, new LogProxy(log, originalDcid));
+        this.csvLogger = new CSVLogger();
         this.initialClientAddress = initialClientAddress;
+        csvLogger.setIpAddressAndPortInitialPacket(initialClientAddress);
+        csvLogger.setSCIDInitialPacket(ByteUtils.bytesToHex(dcid));
+        csvLogger.setDCIDRetryPacket(ByteUtils.bytesToHex(dcid));
+        csvLogger.setSCIDRetryAnswer(ByteUtils.bytesToHex(dcid));
+        csvLogger.setIpAddressAndPortIWir(new InetSocketAddress(serverSocket.getLocalAddress(),serverSocket.getLocalPort()));
+        csvLogger.setTimeReceivedInitialPacket(instant);
+        String connectionIDD = ByteUtils.bytesToHex(connectionId);
+        String dcidman = ByteUtils.bytesToHex(dcid);
+        String Odcidman = ByteUtils.bytesToHex(originalDcid);
         this.connectionId = connectionId;
         this.peerConnectionId = dcid;
         this.originalDcid = originalDcid;
         this.retryRequired = retryRequired;
         this.applicationProtocolRegistry = applicationProtocolRegistry;
         this.closeCallback = closeCallback;
-
         tlsEngine = tlsServerEngineFactory.createServerEngine(new TlsMessageSender(), this);
 
         idleTimer = new IdleTimer(this, log);
@@ -125,7 +135,7 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
         maxOpenStreamsBidi = 100;
         streamManager = new StreamManager(this, Role.Server, log, maxOpenStreamsUni, maxOpenStreamsBidi);
 
-        this.log.getQLog().emitConnectionCreatedEvent(Instant.now());
+        //this.log.getQLog().emi
     }
 
     @Override
@@ -344,6 +354,14 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
                 return ProcessResult.Abort;  // No further packet processing (e.g. ack generation).
             }
             else if (!Arrays.equals(packet.getToken(), token)) {
+                csvLogger.setTimeStampRetryAnswer(Instant.now());
+                csvLogger.setTokenAnswerRetry(ByteUtils.bytesToHex(packet.getToken()));
+                csvLogger.setValidated(String.valueOf(false));
+                try {
+                    csvLogger.write();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 // https://tools.ietf.org/html/draft-ietf-quic-transport-33#section-8.1.2
                 // "If a server receives a client Initial that can be unprotected but contains an invalid Retry token,
                 // (...), the server SHOULD immediately close (Section 10.2) the connection with an INVALID_TOKEN error."
@@ -351,10 +369,20 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
                 return ProcessResult.Abort;
             }
             else {
+                csvLogger.setTimeStampRetryAnswer(time);
+                csvLogger.setTokenAnswerRetry(ByteUtils.bytesToHex(packet.getToken()));
+                csvLogger.setDCIDRetryAnswer(ByteUtils.bytesToHex(connectionId));
                 // Receiving a valid token implies address is validated.
                 addressValidated = true;
+                csvLogger.setValidated(String.valueOf(addressValidated));
                 sender.unsetAntiAmplificationLimit();
                 // Valid token, proceed as usual.
+                try {
+                    csvLogger.write();
+                    immediateClose(EncryptionLevel.Handshake);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 processFrames(packet, time);
                 return ProcessResult.Continue;
             }
@@ -366,8 +394,12 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
     }
 
     private void sendRetry() {
+        csvLogger.setTokenRetry(ByteUtils.bytesToHex(token));
+        csvLogger.setSCIDRetryPacket(ByteUtils.bytesToHex(connectionId));
         RetryPacket retry = new RetryPacket(quicVersion, connectionId, getDestinationConnectionId(), getOriginalDestinationConnectionId(), token);
         sender.send(retry);
+        csvLogger.setTimeStampRetrySend(sender.timeSent);
+        determineIdleTimeout(maxIdleTimeoutInSeconds * 1000L, transportParams.getMaxIdleTimeout(), csvLogger);
     }
 
     @Override
@@ -480,7 +512,7 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
             throw new TransportError(TRANSPORT_PARAMETER_ERROR);
         }
 
-        determineIdleTimeout(maxIdleTimeoutInSeconds * 1000, transportParameters.getMaxIdleTimeout());
+        //determineIdleTimeout(maxIdleTimeoutInSeconds * 1000, transportParameters.getMaxIdleTimeout(),csvLogger);
 
         flowController = new FlowControl(Role.Server, transportParameters.getInitialMaxData(),
                 transportParameters.getInitialMaxStreamDataBidiLocal(), transportParameters.getInitialMaxStreamDataBidiRemote(),

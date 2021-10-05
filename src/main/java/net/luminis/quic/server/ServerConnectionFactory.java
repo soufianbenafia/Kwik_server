@@ -25,6 +25,7 @@ import net.luminis.tls.handshake.TlsServerEngineFactory;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.function.Consumer;
 
 
@@ -59,13 +60,13 @@ public class ServerConnectionFactory {
         randomGenerator = new SecureRandom();
     }
 
-    public ServerConnectionImpl createNewConnection(Version version, InetSocketAddress clientAddress, byte[] originalScid, byte[] originalDcid) {
+    public ServerConnectionImpl createNewConnection(Version version, InetSocketAddress clientAddress, byte[] originalScid, byte[] originalDcid, Instant instant) {
         byte[] connectionId = generateNewConnectionId();
         // https://tools.ietf.org/html/draft-ietf-quic-transport-32#section-7.2
         // "A server MUST set the Destination Connection ID it uses for sending packets based on the first received Initial packet."
         byte[] dcid = originalScid;
         return new ServerConnectionImpl(version, serverSocket, clientAddress, connectionId, dcid, originalDcid,
-                tlsServerEngineFactory, requireRetry, applicationProtocolRegistry, initalRtt, closeCallback, log);
+                tlsServerEngineFactory, requireRetry, applicationProtocolRegistry, initalRtt, closeCallback, log,instant);
     }
 
     private byte[] generateNewConnectionId() {

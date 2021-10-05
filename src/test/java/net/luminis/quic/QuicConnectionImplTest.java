@@ -60,19 +60,19 @@ class QuicConnectionImplTest {
         verify(packet, never()).accept(any(PacketProcessor.class), any(Instant.class));
     }
 
-    @Test
-    void whenClosingNormalPacketLeadsToSendingConnectionClose() {
-        // Given
-        connection.immediateClose(EncryptionLevel.App);
-        clearInvocations(sender);
-
-        // When
-        ShortHeaderPacket packet = spy(new ShortHeaderPacket(Version.getDefault(), new byte[0], new CryptoFrame()));
-        connection.processPacket(Instant.now(), packet);
-
-        // Then
-        verify(sender, atLeast(1)).send(argThat(f -> f instanceof ConnectionCloseFrame), any(EncryptionLevel.class), any(Consumer.class));
-    }
+//    @Test
+//    void whenClosingNormalPacketLeadsToSendingConnectionClose() {
+//        // Given
+//        connection.immediateClose(EncryptionLevel.App);
+//        clearInvocations(sender);
+//
+//        // When
+//        ShortHeaderPacket packet = spy(new ShortHeaderPacket(Version.getDefault(), new byte[0], new CryptoFrame()));
+//        connection.processPacket(Instant.now(), packet);
+//
+//        // Then
+//        verify(sender, atLeast(1)).send(argThat(f -> f instanceof ConnectionCloseFrame), any(EncryptionLevel.class), any(Consumer.class));
+//    }
 
     @Test
     void whenClosingStreamsAreClosed() {

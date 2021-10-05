@@ -18,6 +18,7 @@
  */
 package net.luminis.quic.server;
 
+import com.opencsv.CSVWriter;
 import net.luminis.quic.*;
 import net.luminis.quic.log.FileLogger;
 import net.luminis.quic.log.Logger;
@@ -29,21 +30,13 @@ import net.luminis.tls.handshake.TlsServerEngineFactory;
 import net.luminis.tls.util.ByteUtils;
 import org.apache.commons.cli.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -87,7 +80,7 @@ public class Server implements ServerConnectionRegistry {
         }
 
         List<String> args = cmd.getArgList();
-        if (args.size() < 3) {
+        if (args.size() < 4) {
             usageAndExit();
         }
 
@@ -105,11 +98,13 @@ public class Server implements ServerConnectionRegistry {
             System.exit(1);
         }
 
-        int port = Integer.parseInt(args.get(2));
+        int port = Integer.parseInt(args.get(3));
 
+        String ipAddress = args.get(2);
+        InetAddress inetAddress = InetAddress.getByName(ipAddress);
         File wwwDir = null;
-        if (args.size() > 3) {
-            wwwDir = new File(args.get(3));
+        if (args.size() > 4) {
+            wwwDir = new File(args.get(4));
             if (!wwwDir.exists() || !wwwDir.isDirectory() || !wwwDir.canRead()) {
                 System.err.println("Cannot read www dir '" + wwwDir + "'");
                 System.exit(1);
@@ -120,11 +115,11 @@ public class Server implements ServerConnectionRegistry {
         supportedVersions.addAll(List.of(Version.IETF_draft_29, Version.IETF_draft_30, Version.IETF_draft_31, Version.IETF_draft_32));
         supportedVersions.add(Version.QUIC_version_1);
 
-        new Server(port, new FileInputStream(certificateFile), new FileInputStream(certificateKeyFile), supportedVersions, requireRetry, wwwDir).start();
+        new Server(inetAddress,port, new FileInputStream(certificateFile), new FileInputStream(certificateKeyFile), supportedVersions, requireRetry, wwwDir).start();
     }
 
-    public Server(int port, InputStream certificateFile, InputStream certificateKeyFile, List<Version> supportedVersions, boolean requireRetry, File dir) throws Exception {
-        this(new DatagramSocket(port), certificateFile, certificateKeyFile, supportedVersions, requireRetry, dir);
+    public Server(InetAddress ipAdress,int port, InputStream certificateFile, InputStream certificateKeyFile, List<Version> supportedVersions, boolean requireRetry, File dir) throws Exception {
+        this(new DatagramSocket(port,ipAdress), certificateFile, certificateKeyFile, supportedVersions, requireRetry, dir);
     }
 
     public Server(DatagramSocket socket, InputStream certificateFile, InputStream certificateKeyFile, List<Version> supportedVersions, boolean requireRetry, File dir) throws Exception {
@@ -157,8 +152,36 @@ public class Server implements ServerConnectionRegistry {
         receiver = new Receiver(serverSocket, log, exception -> System.exit(9));
         log.info("Kwik server " + KwikVersion.getVersion() + " started; supported application protcols: "
                 + applicationProtocolRegistry.getRegisteredApplicationProtocols());
+        createFileCSV();
     }
 
+    private void createFileCSV() throws IOException {
+        String fileName = "" +
+                "/home/soufian/entries.csv";
+        File file = new File(fileName);
+        CSVWriter writer = new CSVWriter(new FileWriter(fileName, true));
+        if (file.length() == 0) {
+            String[] header = {"IP adresse des initial packets",
+                    "Port des initial packets",
+                    "IP adresse des Empfänger",
+                    "Port des Empfänger",
+                    "Timestamp initial packet received",
+                    "Timestamp retry packet sent",
+                    "Timestamp retry answer packet",
+                    "durationAfterRetry",
+                    "Token des Retry Packet",
+                    "Token der Retry Antwort",
+                    "SCID des inital packet",
+                    "SCID des retry packet",
+                    "DCID des retry packet",
+                    "SCID der retry Antwort",
+                    "DCID der retry Antwort",
+                    "Validation"
+            };
+            writer.writeNext(header);
+            writer.close();
+        }
+    }
     private void start() {
         receiver.start();
 
@@ -348,7 +371,7 @@ public class Server implements ServerConnectionRegistry {
     private Optional<ServerConnectionProxy> isExistingConnection(InetSocketAddress clientAddress, byte[] dcid) {
         return Optional.ofNullable(currentConnections.get(new ConnectionSource(dcid)));
     }
-    
+
     private void sendVersionNegotiationPacket(InetSocketAddress clientAddress, ByteBuffer data, int dcidLength) {
         data.rewind();
         if (data.remaining() >= 1 + 4 + 1 + dcidLength + 1) {

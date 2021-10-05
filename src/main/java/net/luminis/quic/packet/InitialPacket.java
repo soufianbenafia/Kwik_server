@@ -100,6 +100,7 @@ public class InitialPacket extends LongHeaderPacket {
 
     @Override
     public PacketProcessor.ProcessResult accept(PacketProcessor processor, Instant time) {
+        System.out.println(this.toString());
         return processor.process(this, time);
     }
 

@@ -120,7 +120,7 @@ public class ServerConnectionCandidate implements ServerConnectionProxy {
     private void createAndRegisterServerConnection(InitialPacket initialPacket, Instant timeReceived, ByteBuffer data) {
         Version quicVersion = initialPacket.getVersion();
         byte[] originalDcid = initialPacket.getDestinationConnectionId();
-        ServerConnectionImpl connection = serverConnectionFactory.createNewConnection(quicVersion, clientAddress, initialPacket.getSourceConnectionId(), originalDcid);
+        ServerConnectionImpl connection = serverConnectionFactory.createNewConnection(quicVersion, clientAddress, initialPacket.getSourceConnectionId(), originalDcid,timeReceived);
         log.info("Creating new connection with version " + quicVersion + " for odcid " + ByteUtils.bytesToHex(originalDcid)
                 + " with " + clientAddress.getAddress().getHostAddress() + ": " + ByteUtils.bytesToHex(connection.getConnectionId()));
 

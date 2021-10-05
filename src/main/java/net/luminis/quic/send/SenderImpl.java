@@ -68,6 +68,7 @@ import static java.lang.Long.max;
  */
 public class SenderImpl implements Sender, CongestionControlEventListener {
 
+    public Instant timeSent = null;
     private final int maxPacketSize;
     private volatile DatagramSocket socket;
     private final InetSocketAddress peerAddress;
@@ -378,7 +379,7 @@ public class SenderImpl implements Sender, CongestionControlEventListener {
         }
         DatagramPacket datagram = new DatagramPacket(datagramData, buffer.position(), peerAddress.getAddress(), peerAddress.getPort());
 
-        Instant timeSent = Instant.now();
+        timeSent = Instant.now();
         socket.send(datagram);
         datagramsSent++;
         packetsSent += itemsToSend.size();
