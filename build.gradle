@@ -57,6 +57,7 @@ test {
 }
 
 jar {
+    duplicatesStrategy = 'exclude'
     manifest {
         attributes 'Main-Class': 'net.luminis.quic.run.KwikCli'
     }
@@ -70,6 +71,7 @@ jar {
 }
 
 task determineVersion {
+
     doLast {
         def proc = "git describe --always --dirty".execute()
         proc.waitFor()

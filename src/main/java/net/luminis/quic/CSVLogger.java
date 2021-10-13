@@ -129,7 +129,7 @@ public class CSVLogger {
                     validated};
         }
         String fileName = "" +
-                "/home/soufian/entries.csv";
+                "~/kwik/entries.csv";
         CSVWriter writer = new CSVWriter(new FileWriter(fileName, true));
         if (counter == 0) {
             writer.writeNext(entry);

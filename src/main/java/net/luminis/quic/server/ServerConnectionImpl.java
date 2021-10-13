@@ -379,7 +379,7 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
                 // Valid token, proceed as usual.
                 try {
                     csvLogger.write();
-                    immediateClose(EncryptionLevel.Handshake);
+                    immediateClose(EncryptionLevel.Initial);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
