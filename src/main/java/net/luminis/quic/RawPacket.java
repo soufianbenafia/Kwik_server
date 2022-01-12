@@ -18,8 +18,12 @@
  */
 package net.luminis.quic;
 
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.packet.Packet;
+
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 
@@ -32,11 +36,20 @@ public class RawPacket {
     private final Instant timeReceived;
     private final int number;
     private final ByteBuffer data;
+    private final Packet toSendRawPacket;
 
-    public RawPacket(DatagramPacket receivedPacket, Instant timeReceived, int number) {
+    public PcapNetworkInterface getNif() {
+        return nif;
+    }
+
+    private final PcapNetworkInterface nif;
+
+    public RawPacket(DatagramPacket receivedPacket, Instant timeReceived, int number, Packet toSendRawPacket, PcapNetworkInterface nif) {
         this.receivedPacket = receivedPacket;
         this.timeReceived = timeReceived;
         this.number = number;
+        this.toSendRawPacket = toSendRawPacket;
+        this.nif = nif;
 
         data = ByteBuffer.wrap(receivedPacket.getData(), 0, receivedPacket.getLength());
     }
@@ -63,5 +76,9 @@ public class RawPacket {
 
     public int getPort() {
         return receivedPacket.getPort();
+    }
+
+    public Packet getToSendRawPacket() {
+        return toSendRawPacket;
     }
 }

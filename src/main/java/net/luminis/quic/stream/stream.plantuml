@@ -1,0 +1,280 @@
+@startuml
+
+title __STREAM's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.BaseStream {
+          - frames : SortedSet<StreamElement>
+          - processedToOffset : int
+          # add()
+          # allDataReceived()
+          # bytesAvailable()
+          # isStreamEnd()
+          # read()
+          # readOffset()
+          - removeParsedFrames()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.EarlyDataStream {
+          - earlyData : byte[]
+          - earlyDataIsFinalInStream : boolean
+          - remainingData : byte[]
+          - sendingEarlyData : boolean
+          - writingEarlyData : boolean
+          + EarlyDataStream()
+          + writeEarlyData()
+          + writeRemaining()
+          # createStreamOutputStream()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.EarlyDataStream.EarlyDataStreamOutputStream {
+          # getEncryptionLevel()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.FlowControl {
+          - initialMaxData : long
+          - initialMaxStreamDataBidiLocal : long
+          - initialMaxStreamDataBidiRemote : long
+          - initialMaxStreamDataUni : long
+          - maxDataAllowed : long
+          - maxDataAssigned : long
+          - maxOpenedStreamId : int
+          - maxStreamDataAllowed : Map<Integer, Long>
+          - maxStreamDataAssigned : Map<Integer, Long>
+          - streamListeners : Map<Integer, FlowControlUpdateListener>
+          + FlowControl()
+          + FlowControl()
+          + getFlowControlLimit()
+          + increaseFlowControlLimit()
+          + process()
+          + process()
+          + register()
+          + streamClosed()
+          + streamOpened()
+          + unregister()
+          + updateInitialValues()
+          - currentStreamCredits()
+          - determineInitialMaxStreamData()
+          - locallyInitiated()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      interface net.luminis.quic.stream.FlowControlUpdateListener {
+          {abstract} + streamNotBlocked()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.QuicStreamImpl {
+          {static} # receiverMaxDataIncrementFactor : float
+          # streamId : int
+          {static} # waitForNextFrameTimeout : long
+          - aborted : boolean
+          - addMonitor : Object
+          - blocking : Thread
+          - lastCommunicatedMaxData : long
+          - lastOffset : int
+          - receiverFlowControlLimit : long
+          - receiverMaxDataIncrement : long
+          - sendBufferSize : int
+          + QuicStreamImpl()
+          + QuicStreamImpl()
+          + QuicStreamImpl()
+          + closeInput()
+          + getInputStream()
+          + getOutputStream()
+          + getStreamId()
+          + isClientInitiatedBidirectional()
+          + isServerInitiatedBidirectional()
+          + isUnidirectional()
+          + resetStream()
+          + toString()
+          # createStreamOutputStream()
+          # isStreamEnd()
+          # resetOutputStream()
+          ~ QuicStreamImpl()
+          ~ abort()
+          ~ add()
+          ~ terminateStream()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.QuicStreamImpl.StreamInputStream {
+          - closed : boolean
+          - reset : boolean
+          + available()
+          + close()
+          + read()
+          + read()
+          ~ terminate()
+          - retransmitMaxData()
+          - retransmitStopInput()
+          - stopInput()
+          - updateAllowedFlowControl()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.QuicStreamImpl.StreamOutputStream {
+          - END_OF_STREAM_MARKER : ByteBuffer
+          {static} - MIN_FRAME_SIZE : int
+          - bufferLock : ReentrantLock
+          - bufferedBytes : AtomicInteger
+          - closed : boolean
+          - currentOffset : int
+          - lock : Object
+          - maxBufferSize : int
+          - notFull : Condition
+          - reset : boolean
+          - resetErrorCode : int
+          - sendQueue : Queue<ByteBuffer>
+          - sendRequestQueued : boolean
+          + close()
+          + flush()
+          + streamNotBlocked()
+          + write()
+          + write()
+          + write()
+          # getEncryptionLevel()
+          # reset()
+          ~ StreamOutputStream()
+          ~ sendFrame()
+          - checkState()
+          - createResetFrame()
+          - restart()
+          - retransmitResetFrame()
+          - retransmitStreamFrame()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      interface net.luminis.quic.stream.StreamElement {
+          {abstract} + getLength()
+          {abstract} + getOffset()
+          {abstract} + getStreamData()
+          {abstract} + getUpToOffset()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      class net.luminis.quic.stream.StreamManager {
+          - maxOpenStreamIdBidi : int
+          - maxOpenStreamIdUni : int
+          - maxOpenStreamsBidiUpdateQueued : boolean
+          - maxOpenStreamsUniUpdateQueued : boolean
+          - maxStreamsAcceptedByPeerBidi : Long
+          - maxStreamsAcceptedByPeerUni : Long
+          - nextStreamId : int
+          - openBidirectionalStreams : Semaphore
+          - openUnidirectionalStreams : Semaphore
+          - peerInitiatedStreamCallback : Consumer<QuicStream>
+          - streams : Map<Integer, QuicStreamImpl>
+          + StreamManager()
+          + abortAll()
+          + createEarlyDataStream()
+          + createStream()
+          + createStream()
+          + getMaxBidirectionalStreams()
+          + getMaxUnirectionalStreams()
+          + process()
+          + process()
+          + process()
+          + process()
+          + setFlowController()
+          + setInitialMaxStreamsBidi()
+          + setInitialMaxStreamsUni()
+          + setPeerInitiatedStreamCallback()
+          ~ retransmitMaxStreams()
+          - computeMaxStreamId()
+          - createMaxStreamsUpdateBidi()
+          - createMaxStreamsUpdateUni()
+          - createStream()
+          - generateStreamId()
+          - increaseMaxOpenStreams()
+          - isBidi()
+          - isPeerInitiated()
+          - isUni()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace stream {
+      interface net.luminis.quic.stream.StreamManager.QuicStreamSupplier {
+          {abstract} + apply()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.stream.EarlyDataStream -up-|> net.luminis.quic.stream.QuicStreamImpl
+  net.luminis.quic.stream.EarlyDataStream +-down- net.luminis.quic.stream.EarlyDataStream.EarlyDataStreamOutputStream
+  net.luminis.quic.stream.EarlyDataStream.EarlyDataStreamOutputStream -up-|> net.luminis.quic.stream.QuicStreamImpl.StreamOutputStream
+  net.luminis.quic.stream.FlowControl o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.stream.FlowControl o-- net.luminis.quic.Role : role
+  net.luminis.quic.stream.QuicStreamImpl .up.|> net.luminis.quic.QuicStream
+  net.luminis.quic.stream.QuicStreamImpl -up-|> net.luminis.quic.stream.BaseStream
+  net.luminis.quic.stream.QuicStreamImpl o-- net.luminis.quic.QuicConnectionImpl : connection
+  net.luminis.quic.stream.QuicStreamImpl o-- net.luminis.quic.stream.FlowControl : flowController
+  net.luminis.quic.stream.QuicStreamImpl o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.stream.QuicStreamImpl o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.stream.QuicStreamImpl o-- net.luminis.quic.stream.QuicStreamImpl.StreamInputStream : inputStream
+  net.luminis.quic.stream.QuicStreamImpl o-- net.luminis.quic.stream.QuicStreamImpl.StreamOutputStream : outputStream
+  net.luminis.quic.stream.QuicStreamImpl +-down- net.luminis.quic.stream.QuicStreamImpl.StreamInputStream
+  net.luminis.quic.stream.QuicStreamImpl +-down- net.luminis.quic.stream.QuicStreamImpl.StreamOutputStream
+  net.luminis.quic.stream.QuicStreamImpl.StreamInputStream -up-|> java.io.InputStream
+  net.luminis.quic.stream.QuicStreamImpl.StreamOutputStream .up.|> net.luminis.quic.stream.FlowControlUpdateListener
+  net.luminis.quic.stream.QuicStreamImpl.StreamOutputStream -up-|> java.io.OutputStream
+  net.luminis.quic.stream.StreamManager o-- net.luminis.quic.QuicConnectionImpl : connection
+  net.luminis.quic.stream.StreamManager o-- net.luminis.quic.stream.FlowControl : flowController
+  net.luminis.quic.stream.StreamManager o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.stream.StreamManager o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.stream.StreamManager o-- net.luminis.quic.Role : role
+  net.luminis.quic.stream.StreamManager +-down- net.luminis.quic.stream.StreamManager.QuicStreamSupplier
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

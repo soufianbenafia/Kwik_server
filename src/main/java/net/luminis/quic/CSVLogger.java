@@ -128,8 +128,7 @@ public class CSVLogger {
                     DCIDRetryAnswer,
                     validated};
         }
-        String fileName = "" +
-                "~/kwik/entries.csv";
+        String fileName = "entries.csv";
         CSVWriter writer = new CSVWriter(new FileWriter(fileName, true));
         if (counter == 0) {
             writer.writeNext(entry);

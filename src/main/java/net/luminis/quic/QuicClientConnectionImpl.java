@@ -26,9 +26,9 @@ import net.luminis.quic.log.Logger;
 import net.luminis.quic.log.NullLogger;
 import net.luminis.quic.packet.*;
 import net.luminis.quic.send.SenderImpl;
+import net.luminis.quic.send.SenderImplServer;
 import net.luminis.quic.stream.EarlyDataStream;
 import net.luminis.quic.stream.FlowControl;
-import net.luminis.quic.stream.QuicStreamImpl;
 import net.luminis.quic.stream.StreamManager;
 import net.luminis.quic.tls.QuicTransportParametersExtension;
 import net.luminis.tls.*;
@@ -36,7 +36,6 @@ import net.luminis.tls.extension.ApplicationLayerProtocolNegotiationExtension;
 import net.luminis.tls.extension.EarlyDataExtension;
 import net.luminis.tls.extension.Extension;
 import net.luminis.tls.handshake.*;
-import net.luminis.tls.util.ByteUtils;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -74,7 +73,7 @@ public class QuicClientConnectionImpl extends QuicConnectionImpl implements Quic
     private final DatagramSocket socket;
     private final InetAddress serverAddress;
     private final SenderImpl sender;
-    private final Receiver receiver;
+    private final Receiver2 receiver;
     private final StreamManager streamManager;
     private final X509Certificate clientCertificate;
     private final PrivateKey clientCertificateKey;
@@ -113,13 +112,13 @@ public class QuicClientConnectionImpl extends QuicConnectionImpl implements Quic
         socket = new DatagramSocket();
 
         idleTimer = new IdleTimer(this, log);
-        sender = new SenderImpl(quicVersion, getMaxPacketSize(), socket, new InetSocketAddress(serverAddress, port),
+        sender = new SenderImpl(quicVersion, getMaxPacketSize(), socket, new InetSocketAddress(serverAddress, port),null,null,
                         this, initialRtt, log);
         idleTimer.setPtoSupplier(sender::getPto);
         ackGenerator = sender.getGlobalAckGenerator();
         registerProcessor(ackGenerator);
 
-        receiver = new Receiver(socket, log, this::abortConnection);
+        receiver = new Receiver2(socket, log, this::abortConnection);
         streamManager = new StreamManager(this, Role.Client, log, 10, 10);
         sourceConnectionIds = new SourceConnectionIdRegistry(cidLength, log);
         destConnectionIds = new DestinationConnectionIdRegistry(log);
@@ -600,17 +599,17 @@ public class QuicClientConnectionImpl extends QuicConnectionImpl implements Quic
         }
     }
 
-    public void changeAddress() {
-        try {
-            DatagramSocket newSocket = new DatagramSocket();
-            sender.changeAddress(newSocket);
-            receiver.changeAddress(newSocket);
-            log.info("Changed local address to " + newSocket.getLocalPort());
-        } catch (SocketException e) {
-            // Fairly impossible, as we created a socket on an ephemeral port
-            log.error("Changing local address failed", e);
-        }
-    }
+//    public void changeAddress() {
+//        try {
+//            DatagramSocket newSocket = new DatagramSocket();
+//            sender.changeAddress(newSocket);
+//            receiver.changeAddress(newSocket);
+//            log.info("Changed local address to " + newSocket.getLocalPort());
+//        } catch (SocketException e) {
+//            // Fairly impossible, as we created a socket on an ephemeral port
+//            log.error("Changing local address failed", e);
+//        }
+//    }
 
     public void updateKeys() {
         // https://tools.ietf.org/html/draft-ietf-quic-tls-31#section-6

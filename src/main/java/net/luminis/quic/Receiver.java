@@ -19,6 +19,12 @@
 package net.luminis.quic;
 
 import net.luminis.quic.log.Logger;
+import org.pcap4j.core.*;
+import org.pcap4j.packet.IpV4Packet;
+import org.pcap4j.packet.Packet;
+import org.pcap4j.packet.UdpPacket;
+import org.pcap4j.util.NifSelector;
+import org.savarese.vserv.tcpip.UDPPacket;
 
 import java.io.IOException;
 import java.net.*;
@@ -35,13 +41,17 @@ public class Receiver {
 
     public static final int MAX_DATAGRAM_SIZE = 1500;
 
-    private volatile DatagramSocket socket;
+    private final DatagramSocket socket;
     private final Logger log;
     private final Consumer<Throwable> abortCallback;
     private final Thread receiverThread;
     private final BlockingQueue<RawPacket> receivedPacketsQueue;
     private volatile boolean isClosing = false;
     private volatile boolean changing = false;
+    private static final String SNAPLEN_KEY = Receiver.class.getName() + ".snaplen";
+    private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
+    private PcapHandle handle = null;
+    private PcapNetworkInterface nif = null;
 
     public Receiver(DatagramSocket socket, Logger log, Consumer<Throwable> abortCallback) {
         this.socket = socket;
@@ -52,9 +62,13 @@ public class Receiver {
         receiverThread.setDaemon(true);
         receivedPacketsQueue = new LinkedBlockingQueue<>();
 
+
         try {
+            nif = new NifSelector().selectNetworkInterface();
+            handle = nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 0);
+            handle.setFilter("udp and dst port 443", BpfProgram.BpfCompileMode.OPTIMIZE);
             log.debug("Socket receive buffer size: " + socket.getReceiveBufferSize());
-        } catch (SocketException e) {
+        } catch (PcapNativeException | IOException | NotOpenException e) {
             // Ignore
         }
     }
@@ -78,7 +92,8 @@ public class Receiver {
 
     /**
      * Retrieves a received packet from the queue.
-     * @param timeout    the wait timeout in seconds
+     *
+     * @param timeout the wait timeout in seconds
      * @return
      * @throws InterruptedException
      */
@@ -86,57 +101,75 @@ public class Receiver {
         return receivedPacketsQueue.poll(timeout, TimeUnit.SECONDS);
     }
 
+//    private void run() {
+//        int counter = 0;
+//
+//        try {
+//            while (!isClosing) {
+//                byte[] receiveBuffer = new byte[MAX_DATAGRAM_SIZE];
+//                DatagramPacket receivedPacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+//                try {
+//                    socket.receive(receivedPacket);
+//
+//                    Instant timeReceived = Instant.now();
+//                    RawPacket rawPacket = new RawPacket(receivedPacket, timeReceived, counter++);
+//                    receivedPacketsQueue.add(rawPacket);
+//                } catch (SocketTimeoutException timeout) {
+//                    // Impossible, as no socket timeout set
+//                } catch (SocketException socketError) {
+//                    if (changing) {
+//                        // Expected
+//                        log.debug("Ignoring socket closed exception, because changing socket", socketError);
+//                        changing = false;  // Don't do it again.
+//                    } else {
+//                        throw socketError;
+//                    }
+//                }
+//            }
+//
+//            log.debug("Terminating receive loop");
+//        } catch (IOException e) {
+//            if (!isClosing) {
+//                // This is probably fatal
+//                log.error("IOException while receiving datagrams", e);
+//                abortCallback.accept(e);
+//            } else {
+//                log.debug("closing receiver");
+//            }
+//        } catch (Throwable fatal) {
+//            log.error("IOException while receiving datagrams", fatal);
+//            abortCallback.accept(fatal);
+//        }
+//    }
     private void run() {
         int counter = 0;
 
         try {
             while (! isClosing) {
-                byte[] receiveBuffer = new byte[MAX_DATAGRAM_SIZE];
-                DatagramPacket receivedPacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-                try {
-                    socket.receive(receivedPacket);
+                //byte[] receiveBuffer = new byte[MAX_DATAGRAM_SIZE];
+                Packet packet = handle.getNextPacket();
 
+                if(packet != null) {
+                    DatagramPacket receivedPacket= new DatagramPacket(packet.get(UdpPacket.class).getPayload().getRawData(),
+                            packet.get(UdpPacket.class).getPayload().getRawData().length,
+                            packet.get(IpV4Packet.class).getHeader().getSrcAddr(), packet.get(UdpPacket.class).getHeader().getSrcPort().valueAsInt());
                     Instant timeReceived = Instant.now();
-                    RawPacket rawPacket = new RawPacket(receivedPacket, timeReceived, counter++);
+                    RawPacket rawPacket = new RawPacket(receivedPacket, timeReceived, counter++,packet,nif);
                     receivedPacketsQueue.add(rawPacket);
-                }
-                catch (SocketTimeoutException timeout) {
-                    // Impossible, as no socket timeout set
-                }
-                catch (SocketException socketError) {
-                    if (changing) {
-                        // Expected
-                        log.debug("Ignoring socket closed exception, because changing socket", socketError);
-                        changing = false;  // Don't do it again.
-                    }
-                    else {
-                        throw socketError;
-                    }
                 }
             }
 
             log.debug("Terminating receive loop");
-        }
-        catch (IOException e) {
-            if (! isClosing) {
-                // This is probably fatal
-                log.error("IOException while receiving datagrams", e);
-                abortCallback.accept(e);
-            }
-            else {
-                log.debug("closing receiver");
-            }
-        }
-        catch (Throwable fatal) {
+        } catch (Throwable fatal) {
             log.error("IOException while receiving datagrams", fatal);
             abortCallback.accept(fatal);
         }
     }
 
-    public void changeAddress(DatagramSocket newSocket) {
-        DatagramSocket oldSocket = socket;
-        socket = newSocket;
-        changing = true;
-        oldSocket.close();
-    }
+//    public void changeAddress(DatagramSocket newSocket) {
+//        DatagramSocket oldSocket = socket;
+//        socket = newSocket;
+//        changing = true;
+//        oldSocket.close();
+//    }
 }

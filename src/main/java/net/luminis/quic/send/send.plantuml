@@ -1,0 +1,263 @@
+@startuml
+
+title __SEND's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.GlobalPacketAssembler {
+          - packetAssembler : PacketAssembler[]
+          - sendRequestQueue : SendRequestQueue[]
+          + GlobalPacketAssembler()
+          + assemble()
+          + setInitialToken()
+          + stop()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.InitialPacketAssembler {
+          # initialToken : byte[]
+          + InitialPacketAssembler()
+          + setInitialToken()
+          # createPacket()
+          ~ assemble()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.NullAckGenerator {
+          + NullAckGenerator()
+          + generateAckForPacket()
+          + hasAckToSend()
+          + hasNewAckToSend()
+          + packetReceived()
+          + process()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.PacketAssembler {
+          {static} # EMPTY_CALLBACK : Consumer<QuicFrame>
+          # nextPacketNumber : long
+          + PacketAssembler()
+          + PacketAssembler()
+          # createPacket()
+          # nextPacketNumber()
+          # restorePacketNumber()
+          ~ assemble()
+          - createPacketLostCallback()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.PacketNumberGenerator {
+          - packetNumber : long
+          + nextPacketNumber()
+          + restorePacketNumber()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.SendItem {
+          {static} # EMPTY_CALLBACK : Consumer<QuicPacket>
+          - packetLostCallback : Consumer<QuicPacket>
+          + SendItem()
+          + SendItem()
+          + getPacket()
+          + getPacketLostCallback()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.SendRequest {
+          - estimatedSize : int
+          - frameSupplier : Function<Integer, QuicFrame>
+          - lostCallback : Consumer<QuicFrame>
+          + SendRequest()
+          + getEstimatedSize()
+          + getFrameSupplier()
+          + getLostCallback()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.SendRequestQueue {
+          - ackLock : Object
+          - cleared : boolean
+          - nextAckTime : Instant
+          - probeQueue : List<List<QuicFrame>>
+          - requestQueue : List<SendRequest>
+          + addAckRequest()
+          + addAckRequest()
+          + addProbeRequest()
+          + addProbeRequest()
+          + addRequest()
+          + addRequest()
+          + clear()
+          + getAck()
+          + getProbe()
+          + hasProbe()
+          + hasProbeWithData()
+          + hasRequests()
+          + mustAndWillSendAck()
+          + mustSendAck()
+          + next()
+          + nextDelayedSend()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.SendStatistics {
+          - bytesSent : long
+          - datagramsSent : int
+          - latestRtt : int
+          - lostPackets : long
+          - packetsSent : long
+          - rttVar : int
+          - smoothedRtt : int
+          + SendStatistics()
+          + bytesSent()
+          + datagramsSent()
+          + latestRtt()
+          + lostPackets()
+          + packetsSent()
+          + rttVar()
+          + smoothedRtt()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      interface net.luminis.quic.send.Sender {
+          {static} + NO_RETRANSMIT : Consumer<QuicFrame>
+          {abstract} + datagramProcessed()
+          {abstract} + flush()
+          {abstract} + packetProcessed()
+          {abstract} + send()
+          {abstract} + send()
+          {abstract} + send()
+          {abstract} + sendAck()
+          {abstract} + sendProbe()
+          {abstract} + sendProbe()
+          {abstract} + setInitialToken()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace send {
+      class net.luminis.quic.send.SenderImpl {
+          + timeSent : Instant
+          - antiAmplificationLimit : int
+          - bytesSent : long
+          - condition : Object
+          - datagramsSent : int
+          - discardedSpaces : boolean[]
+          - lastDelayWasZero : boolean
+          - maxPacketSize : int
+          - packetsSent : long
+          - peerAddress : InetSocketAddress
+          - receiverMaxAckDelay : int
+          - running : boolean
+          - sendRequestQueue : SendRequestQueue[]
+          - senderThread : Thread
+          - signalled : boolean
+          - socket : DatagramSocket
+          - stopped : boolean
+          - subsequentZeroDelays : AtomicInteger
+          + SenderImpl()
+          + bytesInFlightDecreased()
+          + bytesInFlightIncreased()
+          + changeAddress()
+          + datagramProcessed()
+          + discard()
+          + flush()
+          + getCongestionController()
+          + getGlobalAckGenerator()
+          + getPto()
+          + getStatistics()
+          + packetProcessed()
+          + send()
+          + send()
+          + send()
+          + send()
+          + sendAck()
+          + sendProbe()
+          + sendProbe()
+          + setAntiAmplificationLimit()
+          + setInitialToken()
+          + setReceiverMaxAckDelay()
+          + shutdown()
+          + start()
+          + stop()
+          + unsetAntiAmplificationLimit()
+          ~ send()
+          ~ sendIfAny()
+          - assemblePacket()
+          - determineMinimalDelay()
+          - earliest()
+          - sendLoop()
+          - wakeUpSenderLoop()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.send.InitialPacketAssembler -up-|> net.luminis.quic.send.PacketAssembler
+  net.luminis.quic.send.NullAckGenerator -up-|> net.luminis.quic.AckGenerator
+  net.luminis.quic.send.PacketAssembler o-- net.luminis.quic.AckGenerator : ackGenerator
+  net.luminis.quic.send.PacketAssembler o-- net.luminis.quic.EncryptionLevel : level
+  net.luminis.quic.send.PacketAssembler o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.send.PacketAssembler o-- net.luminis.quic.send.SendRequestQueue : requestQueue
+  net.luminis.quic.send.PacketAssembler o-- net.luminis.quic.send.PacketNumberGenerator : packetNumberGenerator
+  net.luminis.quic.send.SendItem o-- net.luminis.quic.packet.QuicPacket : packet
+  net.luminis.quic.send.SenderImpl .up.|> net.luminis.quic.cc.CongestionControlEventListener
+  net.luminis.quic.send.SenderImpl .up.|> net.luminis.quic.send.Sender
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.cc.CongestionController : congestionController
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.QuicConnectionImpl : connection
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.crypto.ConnectionSecrets : connectionSecrets
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.GlobalAckGenerator : globalAckGenerator
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.IdleTimer : idleTimer
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.send.GlobalPacketAssembler : packetAssembler
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.qlog.QLog : qlog
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.recovery.RecoveryManager : recoveryManager
+  net.luminis.quic.send.SenderImpl o-- net.luminis.quic.recovery.RttEstimator : rttEstimater
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

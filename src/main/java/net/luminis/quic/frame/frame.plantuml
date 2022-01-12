@@ -1,0 +1,480 @@
+@startuml
+
+title __FRAME's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.AckFrame {
+          {static} + MAX_FRAME_SIZE : int
+          - ackDelay : int
+          - acknowledgedPacketNumbers : List<Long>
+          - delayScale : int
+          - frameBytes : byte[]
+          - largestAcknowledged : long
+          - stringRepresentation : String
+          + AckFrame()
+          + AckFrame()
+          + AckFrame()
+          + AckFrame()
+          + AckFrame()
+          + AckFrame()
+          + accept()
+          + getAckDelay()
+          + getAckedPacketNumbers()
+          + getBytes()
+          + getLargestAcknowledged()
+          + isAckEliciting()
+          + parse()
+          + setDelayExponent()
+          + toString()
+          - addAcknowledgeRange()
+          {static} - getLastElement()
+          - split()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.ConnectionCloseFrame {
+          - errorCode : int
+          - frameType : int
+          - reasonPhrase : byte[]
+          - tlsError : int
+          - triggeringFrameType : int
+          + ConnectionCloseFrame()
+          + ConnectionCloseFrame()
+          + accept()
+          + getBytes()
+          + getErrorCode()
+          + getReasonPhrase()
+          + getTlsError()
+          + hasApplicationProtocolError()
+          + hasError()
+          + hasReasonPhrase()
+          + hasTlsError()
+          + hasTransportError()
+          + isAckEliciting()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.CryptoFrame {
+          - bytes : byte[]
+          - cryptoData : byte[]
+          - length : int
+          - offset : int
+          + CryptoFrame()
+          + CryptoFrame()
+          + CryptoFrame()
+          + accept()
+          + compareTo()
+          + getBytes()
+          + getLength()
+          + getOffset()
+          + getStreamData()
+          + getUpToOffset()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.DataBlockedFrame {
+          - streamDataLimit : int
+          + DataBlockedFrame()
+          + DataBlockedFrame()
+          + accept()
+          + getBytes()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      interface net.luminis.quic.frame.FrameProcessor3 {
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+          {abstract} + process()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.HandshakeDoneFrame {
+          + HandshakeDoneFrame()
+          + accept()
+          + getBytes()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.MaxDataFrame {
+          - maxData : long
+          + MaxDataFrame()
+          + MaxDataFrame()
+          + accept()
+          + getBytes()
+          + getMaxData()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.MaxStreamDataFrame {
+          - maxData : long
+          - streamId : int
+          + MaxStreamDataFrame()
+          + MaxStreamDataFrame()
+          + accept()
+          + getBytes()
+          + getMaxData()
+          + getStreamId()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.MaxStreamsFrame {
+          - appliesToBidirectional : boolean
+          - maxStreams : long
+          + MaxStreamsFrame()
+          + MaxStreamsFrame()
+          + accept()
+          + getBytes()
+          + getMaxStreams()
+          + isAppliesToBidirectional()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.NewConnectionIdFrame {
+          - connectionId : byte[]
+          {static} - random : Random
+          - retirePriorTo : int
+          - sequenceNr : int
+          - statelessResetToken : byte[]
+          + NewConnectionIdFrame()
+          + NewConnectionIdFrame()
+          + accept()
+          + getBytes()
+          + getConnectionId()
+          + getRetirePriorTo()
+          + getSequenceNr()
+          + getStatelessResetToken()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.NewTokenFrame {
+          - newToken : byte[]
+          + accept()
+          + getBytes()
+          + getToken()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.Padding {
+          - length : int
+          + Padding()
+          + Padding()
+          + accept()
+          + getBytes()
+          + getLength()
+          + isAckEliciting()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.PathChallengeFrame {
+          - data : byte[]
+          + PathChallengeFrame()
+          + accept()
+          + getBytes()
+          + getData()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.PathResponseFrame {
+          - data : byte[]
+          + PathResponseFrame()
+          + PathResponseFrame()
+          + accept()
+          + getBytes()
+          + getData()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.PingFrame {
+          + PingFrame()
+          + PingFrame()
+          + accept()
+          + getBytes()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      abstract class net.luminis.quic.frame.QuicFrame {
+          {abstract} + accept()
+          {abstract} + getBytes()
+          + isAckEliciting()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.ResetStreamFrame {
+          - errorCode : int
+          - finalSize : long
+          - streamId : int
+          + ResetStreamFrame()
+          + ResetStreamFrame()
+          + accept()
+          + getBytes()
+          + getErrorCode()
+          + getFinalSize()
+          {static} + getMaximumFrameSize()
+          + getStreamId()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.RetireConnectionIdFrame {
+          - sequenceNr : int
+          + RetireConnectionIdFrame()
+          + RetireConnectionIdFrame()
+          + accept()
+          + equals()
+          + getBytes()
+          + getSequenceNr()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.StopSendingFrame {
+          - errorCode : int
+          - streamId : int
+          + StopSendingFrame()
+          + StopSendingFrame()
+          + accept()
+          + getBytes()
+          + getErrorCode()
+          + getStreamId()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.StreamDataBlockedFrame {
+          - streamDataLimit : int
+          - streamId : int
+          + accept()
+          + getBytes()
+          + getStreamDataLimit()
+          + getStreamId()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.StreamFrame {
+          - frameData : byte[]
+          - isFinal : boolean
+          - length : int
+          - offset : int
+          - streamData : byte[]
+          - streamId : int
+          + StreamFrame()
+          + StreamFrame()
+          + StreamFrame()
+          + StreamFrame()
+          + StreamFrame()
+          + StreamFrame()
+          + accept()
+          + compareTo()
+          + equals()
+          + getBytes()
+          + getLength()
+          + getOffset()
+          + getStreamData()
+          + getStreamId()
+          + getUpToOffset()
+          + hashCode()
+          + isFinal()
+          {static} + maxOverhead()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      enum StreamType {
+        ClientInitiatedBidirectional
+        ClientInitiatedUnidirectional
+        ServerInitiatedBidirectional
+        ServerInitiatedUnidirectional
+        abbrev
+        value
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace frame {
+      class net.luminis.quic.frame.StreamsBlockedFrame {
+          - bidirectional : boolean
+          - streamLimit : int
+          + accept()
+          + getBytes()
+          + getStreamLimit()
+          + isBidirectional()
+          + parse()
+          + toString()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.frame.AckFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.ConnectionCloseFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.CryptoFrame .up.|> java.lang.Comparable
+  net.luminis.quic.frame.CryptoFrame .up.|> net.luminis.quic.stream.StreamElement
+  net.luminis.quic.frame.CryptoFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.DataBlockedFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.HandshakeDoneFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.MaxDataFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.MaxStreamDataFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.MaxStreamsFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.NewConnectionIdFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.NewConnectionIdFrame o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.frame.NewTokenFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.Padding -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.PathChallengeFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.PathResponseFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.PingFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.ResetStreamFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.RetireConnectionIdFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.StopSendingFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.StreamDataBlockedFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.StreamFrame .up.|> java.lang.Comparable
+  net.luminis.quic.frame.StreamFrame .up.|> net.luminis.quic.stream.StreamElement
+  net.luminis.quic.frame.StreamFrame -up-|> net.luminis.quic.frame.QuicFrame
+  net.luminis.quic.frame.StreamFrame o-- net.luminis.quic.frame.StreamType : streamType
+  net.luminis.quic.frame.StreamsBlockedFrame -up-|> net.luminis.quic.frame.QuicFrame
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

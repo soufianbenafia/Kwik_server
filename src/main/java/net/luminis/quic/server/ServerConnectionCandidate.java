@@ -28,6 +28,8 @@ import net.luminis.quic.log.Logger;
 import net.luminis.quic.log.NullLogger;
 import net.luminis.quic.packet.InitialPacket;
 import net.luminis.tls.util.ByteUtils;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.packet.Packet;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -50,19 +52,22 @@ public class ServerConnectionCandidate implements ServerConnectionProxy {
     private final ServerConnectionFactory serverConnectionFactory;
     private final ServerConnectionRegistry connectionRegistry;
     private final Logger log;
+    private final PcapNetworkInterface nif;
     private volatile ServerConnectionThread registeredConnection;
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+    private final Packet  toSendPacket;
 
-
-    public ServerConnectionCandidate(Version version, InetSocketAddress clientAddress, byte[] scid, byte[] dcid,
-                                     ServerConnectionFactory serverConnectionFactory, ServerConnectionRegistry connectionRegistry,  Logger log) {
+    public ServerConnectionCandidate(Version version, InetSocketAddress clientAddress, Packet toSendPacket, PcapNetworkInterface nif, byte[] scid, byte[] dcid,
+                                     ServerConnectionFactory serverConnectionFactory, ServerConnectionRegistry connectionRegistry, Logger log) {
         this.quicVersion = version;
         this.clientAddress = clientAddress;
+        this.toSendPacket = toSendPacket;
         this.dcid = dcid;
         this.serverConnectionFactory = serverConnectionFactory;
         this.connectionRegistry = connectionRegistry;
         this.log = log;
+        this.nif = nif;
     }
 
     @Override
@@ -120,7 +125,7 @@ public class ServerConnectionCandidate implements ServerConnectionProxy {
     private void createAndRegisterServerConnection(InitialPacket initialPacket, Instant timeReceived, ByteBuffer data) {
         Version quicVersion = initialPacket.getVersion();
         byte[] originalDcid = initialPacket.getDestinationConnectionId();
-        ServerConnectionImpl connection = serverConnectionFactory.createNewConnection(quicVersion, clientAddress, initialPacket.getSourceConnectionId(), originalDcid,timeReceived);
+        ServerConnectionImpl connection = serverConnectionFactory.createNewConnection(quicVersion, clientAddress,toSendPacket,nif, initialPacket.getSourceConnectionId(), originalDcid,timeReceived);
         log.info("Creating new connection with version " + quicVersion + " for odcid " + ByteUtils.bytesToHex(originalDcid)
                 + " with " + clientAddress.getAddress().getHostAddress() + ": " + ByteUtils.bytesToHex(connection.getConnectionId()));
 

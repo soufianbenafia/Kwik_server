@@ -1,0 +1,294 @@
+@startuml
+
+title __LOG's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace log {
+      abstract class net.luminis.quic.log.BaseLogger {
+          {static} + TIME_FORMAT_SHORT : String
+          {static} - TIME_FORMAT_LONG : String
+          - logCongestionControl : boolean
+          - logDebug : boolean
+          - logDecrypted : boolean
+          - logFlowControl : boolean
+          - logInfo : boolean
+          - logPackets : boolean
+          - logRawBytes : boolean
+          - logRecovery : boolean
+          - logSecrets : boolean
+          - logStats : boolean
+          - logWarning : boolean
+          - start : Instant
+          - timeFormatter : DateTimeFormatter
+          - useRelativeTime : boolean
+          + BaseLogger()
+          + cc()
+          + debug()
+          + debug()
+          + debug()
+          + debugWithHexBlock()
+          + debugWithHexBlock()
+          + decrypted()
+          + decrypted()
+          + decrypted()
+          + encrypted()
+          + error()
+          + error()
+          + fc()
+          + getQLog()
+          + info()
+          + info()
+          + logCongestionControl()
+          + logDebug()
+          + logDecrypted()
+          + logFlowControl()
+          + logFlowControl()
+          + logInfo()
+          + logPackets()
+          + logRaw()
+          + logRecovery()
+          + logSecrets()
+          + logStats()
+          + logWarning()
+          + raw()
+          + raw()
+          + raw()
+          + received()
+          + received()
+          + receivedPacketInfo()
+          + recovery()
+          + recovery()
+          + secret()
+          + sent()
+          + sent()
+          + sentPacketInfo()
+          + stats()
+          + timeFormat()
+          + useRelativeTime()
+          + warn()
+          # byteToHex()
+          # byteToHexBlock()
+          # byteToHexBlock()
+          # formatTime()
+          # formatTime()
+          {abstract} # log()
+          {abstract} # log()
+          {abstract} # logWithHexDump()
+          {abstract} # logWithHexDump()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace log {
+      class net.luminis.quic.log.FileLogger {
+          - logFile : File
+          - logStream : PrintStream
+          + FileLogger()
+          # log()
+          # log()
+          # logWithHexDump()
+          # logWithHexDump()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace log {
+      class net.luminis.quic.log.LogProxy {
+          + LogProxy()
+          + cc()
+          + debug()
+          + debug()
+          + debug()
+          + debugWithHexBlock()
+          + debugWithHexBlock()
+          + decrypted()
+          + decrypted()
+          + decrypted()
+          + encrypted()
+          + error()
+          + error()
+          + fc()
+          + getQLog()
+          + info()
+          + info()
+          + logCongestionControl()
+          + logDebug()
+          + logDecrypted()
+          + logFlowControl()
+          + logFlowControl()
+          + logInfo()
+          + logPackets()
+          + logRaw()
+          + logRecovery()
+          + logSecrets()
+          + logStats()
+          + logWarning()
+          + raw()
+          + raw()
+          + raw()
+          + received()
+          + received()
+          + receivedPacketInfo()
+          + recovery()
+          + recovery()
+          + secret()
+          + sent()
+          + sent()
+          + sentPacketInfo()
+          + stats()
+          + timeFormat()
+          + useRelativeTime()
+          + warn()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace log {
+      interface net.luminis.quic.log.Logger {
+          {abstract} + cc()
+          {abstract} + debug()
+          {abstract} + debug()
+          {abstract} + debug()
+          {abstract} + debugWithHexBlock()
+          {abstract} + debugWithHexBlock()
+          {abstract} + decrypted()
+          {abstract} + decrypted()
+          {abstract} + decrypted()
+          {abstract} + encrypted()
+          {abstract} + error()
+          {abstract} + error()
+          {abstract} + fc()
+          {abstract} + getQLog()
+          {abstract} + info()
+          {abstract} + info()
+          {abstract} + logCongestionControl()
+          {abstract} + logDebug()
+          {abstract} + logDecrypted()
+          {abstract} + logFlowControl()
+          {abstract} + logFlowControl()
+          {abstract} + logInfo()
+          {abstract} + logPackets()
+          {abstract} + logRaw()
+          {abstract} + logRecovery()
+          {abstract} + logSecrets()
+          {abstract} + logStats()
+          {abstract} + logWarning()
+          {abstract} + raw()
+          {abstract} + raw()
+          {abstract} + raw()
+          {abstract} + received()
+          {abstract} + received()
+          {abstract} + receivedPacketInfo()
+          {abstract} + recovery()
+          {abstract} + recovery()
+          {abstract} + secret()
+          {abstract} + sent()
+          {abstract} + sent()
+          {abstract} + sentPacketInfo()
+          {abstract} + stats()
+          {abstract} + timeFormat()
+          {abstract} + useRelativeTime()
+          {abstract} + warn()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace log {
+      enum TimeFormat {
+        Long
+        Short
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace log {
+      class net.luminis.quic.log.NullLogger {
+          + cc()
+          + debug()
+          + debug()
+          + debug()
+          + debugWithHexBlock()
+          + debugWithHexBlock()
+          + decrypted()
+          + decrypted()
+          + decrypted()
+          + encrypted()
+          + error()
+          + error()
+          + fc()
+          + getQLog()
+          + info()
+          + info()
+          + logCongestionControl()
+          + logDebug()
+          + logDecrypted()
+          + logFlowControl()
+          + logFlowControl()
+          + logInfo()
+          + logPackets()
+          + logRaw()
+          + logRecovery()
+          + logSecrets()
+          + logStats()
+          + logWarning()
+          + raw()
+          + raw()
+          + raw()
+          + received()
+          + received()
+          + receivedPacketInfo()
+          + recovery()
+          + recovery()
+          + secret()
+          + sent()
+          + sent()
+          + sentPacketInfo()
+          + stats()
+          + timeFormat()
+          + useRelativeTime()
+          + warn()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace log {
+      class net.luminis.quic.log.SysOutLogger {
+          # log()
+          # log()
+          # logWithHexDump()
+          # logWithHexDump()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.log.BaseLogger .up.|> net.luminis.quic.log.Logger
+  net.luminis.quic.log.FileLogger -up-|> net.luminis.quic.log.BaseLogger
+  net.luminis.quic.log.LogProxy .up.|> net.luminis.quic.log.Logger
+  net.luminis.quic.log.LogProxy o-- net.luminis.quic.log.Logger : proxiedLogger
+  net.luminis.quic.log.LogProxy o-- net.luminis.quic.qlog.QLogFrontEnd : qlogFrontEnd
+  net.luminis.quic.log.Logger +-down- net.luminis.quic.log.Logger.TimeFormat
+  net.luminis.quic.log.NullLogger .up.|> net.luminis.quic.log.Logger
+  net.luminis.quic.log.SysOutLogger -up-|> net.luminis.quic.log.BaseLogger
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

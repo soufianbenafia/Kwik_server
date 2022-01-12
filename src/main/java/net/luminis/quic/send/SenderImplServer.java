@@ -30,14 +30,7 @@ import net.luminis.quic.packet.RetryPacket;
 import net.luminis.quic.qlog.QLog;
 import net.luminis.quic.recovery.RecoveryManager;
 import net.luminis.quic.recovery.RttEstimator;
-import org.pcap4j.core.NotOpenException;
-import org.pcap4j.core.PcapHandle;
-import org.pcap4j.core.PcapNativeException;
-import org.pcap4j.core.PcapNetworkInterface;
-import org.pcap4j.packet.*;
-import org.pcap4j.packet.namednumber.EtherType;
-import org.pcap4j.packet.namednumber.IpNumber;
-import org.pcap4j.packet.namednumber.IpVersion;
+import org.pcap4j.packet.UdpPacket;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -74,12 +67,13 @@ import static java.lang.Long.max;
  * - delayed ack timeout
  * - congestion controller becoming unblocked due to timer-induced loss detection
  */
-public class SenderImpl implements Sender, CongestionControlEventListener {
+public class SenderImplServer implements Sender, CongestionControlEventListener {
 
     public Instant timeSent = null;
     private final int maxPacketSize;
     private volatile DatagramSocket socket;
     private final InetSocketAddress peerAddress;
+    private final InetSocketAddress destinationAddress;
     private final QuicConnectionImpl connection;
     private final CongestionController congestionController;
     private final RttEstimator rttEstimater;
@@ -106,19 +100,17 @@ public class SenderImpl implements Sender, CongestionControlEventListener {
     private AtomicInteger subsequentZeroDelays = new AtomicInteger();
     private volatile boolean lastDelayWasZero = false;
     private volatile int antiAmplificationLimit = -1;
-    private final Packet toSendPacket;
-    private final PcapNetworkInterface nif;
 
-    public SenderImpl(Version version, int maxPacketSize, DatagramSocket socket, InetSocketAddress peerAddress, Packet toSendPacket, PcapNetworkInterface nif,
+
+    public SenderImplServer(Version version, int maxPacketSize, DatagramSocket socket, InetSocketAddress peerAddress,InetSocketAddress destinationAddress,
                       QuicConnectionImpl connection, Integer initialRtt, Logger log) {
         this.maxPacketSize = maxPacketSize;
         this.socket = socket;
         this.peerAddress = peerAddress;
-        this.toSendPacket = toSendPacket;
+        this.destinationAddress = destinationAddress;
         this.connection = connection;
         this.log = log;
         this.qlog = log.getQLog();
-        this.nif = nif;
 
         Arrays.stream(EncryptionLevel.values()).forEach(level -> {
             int levelIndex = level.ordinal();
@@ -222,7 +214,7 @@ public class SenderImpl implements Sender, CongestionControlEventListener {
     }
 
     @Override
-            public void datagramProcessed(boolean expectingMore) {
+    public void datagramProcessed(boolean expectingMore) {
         // Nothing, current implementation flushes when packet processed
     }
 
@@ -230,7 +222,7 @@ public class SenderImpl implements Sender, CongestionControlEventListener {
     public void flush() {
         wakeUpSenderLoop();
     }
-    
+
     public void changeAddress(DatagramSocket newSocket) {
         socket = newSocket;
     }
@@ -391,46 +383,18 @@ public class SenderImpl implements Sender, CongestionControlEventListener {
         DatagramPacket datagram = new DatagramPacket(datagramData, buffer.position(), peerAddress.getAddress(), peerAddress.getPort());
 
         UdpPacket.Builder udpBuilder = new UdpPacket.Builder();
-        udpBuilder.srcPort(toSendPacket.get(UdpPacket.class).getHeader().getDstPort())
-                .dstPort(toSendPacket.get(UdpPacket.class).getHeader().getSrcPort())
-                .srcAddr(toSendPacket.get(IpV4Packet.class).getHeader().getDstAddr())
-                .dstAddr(toSendPacket.get(IpV4Packet.class).getHeader().getSrcAddr())
-                .payloadBuilder(new UnknownPacket.Builder().rawData(Arrays.copyOfRange(buffer.array(), 0, buffer.position())))
-                .correctChecksumAtBuild(true)
-                .correctLengthAtBuild(true);
-        System.out.println(datagramData.length);
-        System.out.println(udpBuilder.build().getPayload().length());
-        IpV4Packet.Builder ipv4b = new IpV4Packet.Builder();
-        ipv4b.version(IpVersion.IPV4)
-                .tos(IpV4Rfc791Tos.newInstance((byte)0))
-                .identification((short)100)
-                .ttl((byte)100)
-                .protocol(IpNumber.UDP)
-                .payloadBuilder(udpBuilder)
-                .correctChecksumAtBuild(true)
-                .correctLengthAtBuild(true)
-                .srcAddr(toSendPacket.get(IpV4Packet.class).getHeader().getDstAddr())
-                .dstAddr(toSendPacket.get(IpV4Packet.class).getHeader().getSrcAddr());
-        EthernetPacket.Builder eb = new EthernetPacket.Builder();
-        eb.type(EtherType.IPV4)
-                .srcAddr(toSendPacket.get(EthernetPacket.class).getHeader().getDstAddr())
-                .dstAddr(toSendPacket.get(EthernetPacket.class).getHeader().getSrcAddr())
-                .payloadBuilder(ipv4b)
-                .paddingAtBuild(true);
 
-        System.out.println("ETHERNET BUILDER" + eb.toString());
-        EthernetPacket pack = eb.build();
-        System.out.println(pack);
+//        udpBuilder.
+//        udpBuilder.srcPort(destinationAddress.getPort())
+//                .dstPort(peerAddress.getPort())
+//                .srcAddr(destinationAddress.getAddress())
+//                .dstAddr(peerAddress.getAddress())
+//                .payloadBuilder(datagram)
+//                .correctLengthAtBuild(true);
+
+
         timeSent = Instant.now();
-        try {
-            final PcapHandle handle4send = nif.openLive(65536, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 0);
-            handle4send.sendPacket(pack);
-            handle4send.close();
-        } catch (PcapNativeException | NotOpenException e) {
-            e.printStackTrace();
-        }
-        //socket.send(datagram);
-
+        socket.send(datagram);
         datagramsSent++;
         packetsSent += itemsToSend.size();
         bytesSent += buffer.position();

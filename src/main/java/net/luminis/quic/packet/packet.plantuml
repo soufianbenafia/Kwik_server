@@ -1,0 +1,266 @@
+@startuml
+
+title __PACKET's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.HandshakePacket {
+          + HandshakePacket()
+          + HandshakePacket()
+          + accept()
+          + copy()
+          + getEncryptionLevel()
+          + getPnSpace()
+          # checkPacketType()
+          # estimateAdditionalFieldsLength()
+          # generateAdditionalFields()
+          # getPacketType()
+          # parseAdditionalFields()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.InitialPacket {
+          - token : byte[]
+          + InitialPacket()
+          + InitialPacket()
+          + InitialPacket()
+          + accept()
+          + copy()
+          + ensureSize()
+          + getEncryptionLevel()
+          + getPnSpace()
+          + getToken()
+          {static} + isInitial()
+          + toString()
+          # checkPacketType()
+          # estimateAdditionalFieldsLength()
+          # generateAdditionalFields()
+          # getPacketType()
+          # parseAdditionalFields()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      abstract class net.luminis.quic.packet.LongHeaderPacket {
+          # sourceConnectionId : byte[]
+          {static} - MAX_PACKET_SIZE : int
+          {static} - MIN_PACKET_LENGTH : int
+          + LongHeaderPacket()
+          + LongHeaderPacket()
+          + LongHeaderPacket()
+          + estimateLength()
+          + generatePacketBytes()
+          + getSourceConnectionId()
+          + parse()
+          + toString()
+          {abstract} # checkPacketType()
+          {abstract} # estimateAdditionalFieldsLength()
+          {abstract} # generateAdditionalFields()
+          # generateFrameHeaderInvariant()
+          {abstract} # getPacketType()
+          {abstract} # parseAdditionalFields()
+          - addLength()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.PacketInfo {
+          ~ lostPacketCallback : Consumer<QuicPacket>
+          ~ timeSent : Instant
+          + PacketInfo()
+          + lostPacketCallback()
+          + packet()
+          + timeSent()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      abstract class net.luminis.quic.packet.QuicPacket {
+          {static} # MAX_PACKET_SIZE : int
+          # destinationConnectionId : byte[]
+          # frames : List<QuicFrame>
+          # isProbe : boolean
+          # packetNumber : long
+          # packetSize : int
+          + QuicPacket()
+          {abstract} + accept()
+          + addFrame()
+          + addFrames()
+          + canBeAcked()
+          + copy()
+          {abstract} + estimateLength()
+          {abstract} + generatePacketBytes()
+          + getDestinationConnectionId()
+          {abstract} + getEncryptionLevel()
+          + getFrames()
+          + getPacketNumber()
+          {abstract} + getPnSpace()
+          + getSize()
+          + getVersion()
+          + isAckEliciting()
+          + isAckOnly()
+          + isCrypto()
+          + isInflightPacket()
+          {abstract} + parse()
+          + setIsProbe()
+          + setPacketNumber()
+          # generatePayloadBytes()
+          # parseFrames()
+          # protectPacketNumberAndPayload()
+          # setUnprotectedHeader()
+          {static} ~ bytesToInt()
+          ~ createHeaderProtectionMask()
+          ~ createHeaderProtectionMask()
+          {static} ~ decodePacketNumber()
+          ~ decryptPayload()
+          {static} ~ encodePacketNumber()
+          {static} ~ encodePacketNumberLength()
+          ~ encryptPayload()
+          ~ parsePacketNumberAndPayload()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.RetryPacket {
+          {static} + NONCE : byte[]
+          {static} + NONCE_V1 : byte[]
+          {static} + RETRY_INTEGRITY_TAG_LENGTH : int
+          {static} + SECRET_KEY : byte[]
+          {static} + SECRET_KEY_V1 : byte[]
+          {static} - MIN_PACKET_LENGTH : int
+          - originalDestinationConnectionId : byte[]
+          - rawPacketData : byte[]
+          - retryIntegrityTag : byte[]
+          - retryToken : byte[]
+          - sourceConnectionId : byte[]
+          + RetryPacket()
+          + RetryPacket()
+          + accept()
+          + canBeAcked()
+          + estimateLength()
+          + generatePacketBytes()
+          + getEncryptionLevel()
+          + getPacketNumber()
+          + getPnSpace()
+          + getRetryToken()
+          + getSourceConnectionId()
+          + isAckEliciting()
+          + isAckOnly()
+          + isInflightPacket()
+          + parse()
+          + toString()
+          + validateIntegrityTag()
+          - computeIntegrityTag()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.ShortHeaderPacket {
+          # keyPhaseBit : short
+          - packetBytes : byte[]
+          + ShortHeaderPacket()
+          + ShortHeaderPacket()
+          + accept()
+          + estimateLength()
+          + generatePacketBytes()
+          + getDestinationConnectionId()
+          + getEncryptionLevel()
+          + getPnSpace()
+          + parse()
+          + toString()
+          # checkPacketType()
+          # setUnprotectedHeader()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.VersionNegotiationPacket {
+          {static} - MIN_PACKET_LENGTH : int
+          - destinationConnectionId : byte[]
+          - packetSize : int
+          {static} - random : Random
+          - serverSupportedVersions : List<Version>
+          - sourceConnectionId : byte[]
+          + VersionNegotiationPacket()
+          + VersionNegotiationPacket()
+          + VersionNegotiationPacket()
+          + VersionNegotiationPacket()
+          + accept()
+          + canBeAcked()
+          + estimateLength()
+          + generatePacketBytes()
+          + getDcid()
+          + getEncryptionLevel()
+          + getPacketNumber()
+          + getPnSpace()
+          + getScid()
+          + getServerSupportedVersions()
+          + parse()
+          + toString()
+          - parseVersion()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace packet {
+      class net.luminis.quic.packet.ZeroRttPacket {
+          + ZeroRttPacket()
+          + ZeroRttPacket()
+          + accept()
+          + getEncryptionLevel()
+          + getPnSpace()
+          + toString()
+          # checkPacketType()
+          # estimateAdditionalFieldsLength()
+          # generateAdditionalFields()
+          # getPacketType()
+          # parseAdditionalFields()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.packet.HandshakePacket -up-|> net.luminis.quic.packet.LongHeaderPacket
+  net.luminis.quic.packet.InitialPacket -up-|> net.luminis.quic.packet.LongHeaderPacket
+  net.luminis.quic.packet.LongHeaderPacket -up-|> net.luminis.quic.packet.QuicPacket
+  net.luminis.quic.packet.PacketInfo o-- net.luminis.quic.packet.QuicPacket : packet
+  net.luminis.quic.packet.QuicPacket o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.packet.RetryPacket -up-|> net.luminis.quic.packet.QuicPacket
+  net.luminis.quic.packet.ShortHeaderPacket -up-|> net.luminis.quic.packet.QuicPacket
+  net.luminis.quic.packet.VersionNegotiationPacket -up-|> net.luminis.quic.packet.QuicPacket
+  net.luminis.quic.packet.ZeroRttPacket -up-|> net.luminis.quic.packet.LongHeaderPacket
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

@@ -1,0 +1,165 @@
+@startuml
+
+title __RECOVERY's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace recovery {
+      class net.luminis.quic.recovery.LossDetector {
+          - ackElicitingInFlight : AtomicInteger
+          - isReset : boolean
+          - kPacketThreshold : int
+          - kTimeThreshold : float
+          - largestAcked : long
+          - lastAckElicitingSent : Instant
+          - lossTime : Instant
+          - lost : long
+          - packetSentLog : Map<Long, PacketStatus>
+          + LossDetector()
+          + getLost()
+          + noAckedReceived()
+          + onAckReceived()
+          + packetSent()
+          + reset()
+          ~ ackElicitingInFlight()
+          ~ detectLostPackets()
+          ~ getInFlight()
+          ~ getLastAckElicitingSent()
+          ~ getLossTime()
+          ~ unAcked()
+          - declareLost()
+          - filterInFlight()
+          - pnTooOld()
+          - sentTimeTooLongAgo()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace recovery {
+      class net.luminis.quic.recovery.PacketStatus {
+          - acked : boolean
+          - lost : boolean
+          + PacketStatus()
+          + acked()
+          + inFlight()
+          + setAcked()
+          + setLost()
+          + status()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace recovery {
+      class net.luminis.quic.recovery.RecoveryManager {
+          - hasBeenReset : boolean
+          - lossDetectionTimer : ScheduledFuture<?>
+          - lossDetectors : LossDetector[]
+          - ptoCount : int
+          - receiverMaxAckDelay : int
+          - scheduler : ScheduledExecutorService
+          - timerExpiration : Instant
+          + RecoveryManager()
+          + getLost()
+          + handshakeStateChangedEvent()
+          + onAckReceived()
+          + packetSent()
+          + process()
+          + setReceiverMaxAckDelay()
+          + stopRecovery()
+          + stopRecovery()
+          ~ getEarliestLossTime()
+          ~ getFramesToRetransmit()
+          ~ reschedule()
+          ~ setLossDetectionTimer()
+          ~ timeNow()
+          ~ unschedule()
+          - ackElicitingInFlight()
+          - getPtoTimeAndSpace()
+          - lossDetectionTimeout()
+          - peerAwaitingAddressValidation()
+          - repeatSend()
+          - sendOneOrTwoAckElicitingPackets()
+          - sendProbe()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace recovery {
+      class net.luminis.quic.recovery.RecoveryManager.NullScheduledFuture {
+          + cancel()
+          + compareTo()
+          + get()
+          + get()
+          + getDelay()
+          + isCancelled()
+          + isDone()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace recovery {
+      class net.luminis.quic.recovery.RecoveryManager.PnSpaceTime {
+          + lossTime : Instant
+          + PnSpaceTime()
+          + toString()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace recovery {
+      class net.luminis.quic.recovery.RttEstimator {
+          - initialRtt : int
+          - latestRtt : int
+          - maxAckDelay : int
+          - minRtt : int
+          - rttVar : int
+          - smoothedRtt : int
+          + RttEstimator()
+          + RttEstimator()
+          + ackReceived()
+          + addSample()
+          + getLatestRtt()
+          + getRttVar()
+          + getSmoothedRtt()
+          + setMaxAckDelay()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.recovery.LossDetector o-- net.luminis.quic.cc.CongestionController : congestionController
+  net.luminis.quic.recovery.LossDetector o-- net.luminis.quic.recovery.RecoveryManager : recoveryManager
+  net.luminis.quic.recovery.LossDetector o-- net.luminis.quic.recovery.RttEstimator : rttEstimater
+  net.luminis.quic.recovery.PacketStatus -up-|> net.luminis.quic.packet.PacketInfo
+  net.luminis.quic.recovery.RecoveryManager .up.|> net.luminis.quic.FrameProcessor2
+  net.luminis.quic.recovery.RecoveryManager .up.|> net.luminis.quic.HandshakeStateListener
+  net.luminis.quic.recovery.RecoveryManager o-- net.luminis.quic.HandshakeState : handshakeState
+  net.luminis.quic.recovery.RecoveryManager o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.recovery.RecoveryManager o-- net.luminis.quic.Role : role
+  net.luminis.quic.recovery.RecoveryManager o-- net.luminis.quic.recovery.RttEstimator : rttEstimater
+  net.luminis.quic.recovery.RecoveryManager o-- net.luminis.quic.send.Sender : sender
+  net.luminis.quic.recovery.RecoveryManager +-down- net.luminis.quic.recovery.RecoveryManager.NullScheduledFuture
+  net.luminis.quic.recovery.RecoveryManager +-down- net.luminis.quic.recovery.RecoveryManager.PnSpaceTime
+  net.luminis.quic.recovery.RecoveryManager.NullScheduledFuture .up.|> java.util.concurrent.ScheduledFuture
+  net.luminis.quic.recovery.RecoveryManager.PnSpaceTime o-- net.luminis.quic.PnSpace : pnSpace
+  net.luminis.quic.recovery.RttEstimator o-- net.luminis.quic.log.Logger : log
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

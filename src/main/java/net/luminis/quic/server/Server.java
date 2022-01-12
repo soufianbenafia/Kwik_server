@@ -29,6 +29,8 @@ import net.luminis.quic.server.h09.Http09ApplicationProtocolFactory;
 import net.luminis.tls.handshake.TlsServerEngineFactory;
 import net.luminis.tls.util.ByteUtils;
 import org.apache.commons.cli.*;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.packet.Packet;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -80,7 +82,7 @@ public class Server implements ServerConnectionRegistry {
         }
 
         List<String> args = cmd.getArgList();
-        if (args.size() < 4) {
+        if (args.size() < 2) {
             usageAndExit();
         }
 
@@ -98,10 +100,10 @@ public class Server implements ServerConnectionRegistry {
             System.exit(1);
         }
 
-        int port = Integer.parseInt(args.get(3));
+        //int port = Integer.parseInt(args.get(3));
 
-        String ipAddress = args.get(2);
-        InetAddress inetAddress = InetAddress.getByName(ipAddress);
+        //String ipAddress = args.get(2);
+        //InetAddress inetAddress = InetAddress.getByName(ipAddress);
         File wwwDir = null;
         if (args.size() > 4) {
             wwwDir = new File(args.get(4));
@@ -115,7 +117,7 @@ public class Server implements ServerConnectionRegistry {
         supportedVersions.addAll(List.of(Version.IETF_draft_29, Version.IETF_draft_30, Version.IETF_draft_31, Version.IETF_draft_32));
         supportedVersions.add(Version.QUIC_version_1);
 
-        new Server(inetAddress,port, new FileInputStream(certificateFile), new FileInputStream(certificateKeyFile), supportedVersions, requireRetry, wwwDir).start();
+        new Server(null,0, new FileInputStream(certificateFile), new FileInputStream(certificateKeyFile), supportedVersions, requireRetry, wwwDir).start();
     }
 
     public Server(InetAddress ipAdress,int port, InputStream certificateFile, InputStream certificateKeyFile, List<Version> supportedVersions, boolean requireRetry, File dir) throws Exception {
@@ -156,8 +158,7 @@ public class Server implements ServerConnectionRegistry {
     }
 
     private void createFileCSV() throws IOException {
-        String fileName = "" +
-                "/home/soufian/entries.csv";
+        String fileName = "entries.csv";
         File file = new File(fileName);
         CSVWriter writer = new CSVWriter(new FileWriter(fileName, true));
         if (file.length() == 0) {
@@ -245,7 +246,7 @@ public class Server implements ServerConnectionRegistry {
         if ((flags & 0b1100_0000) == 0b1100_0000) {
             // https://tools.ietf.org/html/draft-ietf-quic-transport-32#section-17.2
             // "Header Form:  The most significant bit (0x80) of byte 0 (the first byte) is set to 1 for long headers."
-            processLongHeaderPacket(new InetSocketAddress(rawPacket.getAddress(), rawPacket.getPort()), data);
+            processLongHeaderPacket(new InetSocketAddress(rawPacket.getAddress(), rawPacket.getPort()), data,rawPacket.getToSendRawPacket(),rawPacket.getNif());
         } else if ((flags & 0b1100_0000) == 0b0100_0000) {
             // https://tools.ietf.org/html/draft-ietf-quic-transport-32#section-17.3
             // "Header Form:  The most significant bit (0x80) of byte 0 is set to 0 for the short header.
@@ -259,7 +260,7 @@ public class Server implements ServerConnectionRegistry {
         }
     }
 
-    private void processLongHeaderPacket(InetSocketAddress clientAddress, ByteBuffer data) {
+    private void processLongHeaderPacket(InetSocketAddress clientAddress, ByteBuffer data, Packet toSendPacket, PcapNetworkInterface nif) {
         if (data.remaining() >= MINIMUM_LONG_HEADER_LENGTH) {
             data.position(1);
             int version = data.getInt();
@@ -291,7 +292,7 @@ public class Server implements ServerConnectionRegistry {
                     if (connection.isEmpty()) {
                         synchronized (this) {
                             if (mightStartNewConnection(data, version, dcid) && isExistingConnection(clientAddress, dcid).isEmpty()) {
-                                connection = Optional.of(createNewConnection(version, clientAddress, scid, dcid));
+                                connection = Optional.of(createNewConnection(version, clientAddress, scid, dcid,toSendPacket,nif));
                             } else if (initialWithUnspportedVersion(data, version)) {
                                 log.received(Instant.now(), 0, EncryptionLevel.Initial, dcid, scid);
                                 // https://tools.ietf.org/html/draft-ietf-quic-transport-32#section-6
@@ -341,10 +342,10 @@ public class Server implements ServerConnectionRegistry {
         return false;
     }
 
-    private ServerConnectionProxy createNewConnection(int versionValue, InetSocketAddress clientAddress, byte[] scid, byte[] dcid) {
+    private ServerConnectionProxy createNewConnection(int versionValue, InetSocketAddress clientAddress, byte[] scid, byte[] dcid,Packet toSendPacket,PcapNetworkInterface nif) {
         try {
             Version version = Version.parse(versionValue);
-            ServerConnectionProxy connectionCandidate = new ServerConnectionCandidate(version, clientAddress, scid, dcid, serverConnectionFactory, this, log);
+            ServerConnectionProxy connectionCandidate = new ServerConnectionCandidate(version, clientAddress,toSendPacket,nif, scid, dcid, serverConnectionFactory, this, log);
             // Register new connection now with the original connection id, as retransmitted initial packets with the
             // same original dcid might be received, which should _not_ lead to another connection candidate)
             currentConnections.put(new ConnectionSource(dcid), connectionCandidate);

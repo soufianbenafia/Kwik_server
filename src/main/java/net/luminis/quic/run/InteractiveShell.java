@@ -89,7 +89,7 @@ public class InteractiveShell {
         commands.put("cid_next", this::nextDestinationConnectionId);
         commands.put("cid_list", this::printConnectionIds);
         commands.put("cid_retire", this::retireConnectionId);
-        commands.put("udp_rebind", this::changeUdpPort);
+        //commands.put("udp_rebind", this::changeUdpPort);
         commands.put("update_keys", this::updateKeys);
         commands.put("statistics", this::printStatistics);
         commands.put("!!", this::repeatLastCommand);
@@ -293,9 +293,9 @@ public class InteractiveShell {
         quicConnection.retireDestinationConnectionId(toInt(arg));
     }
 
-    private void changeUdpPort(String args) {
-        quicConnection.changeAddress();
-    }
+//    private void changeUdpPort(String args) {
+//        quicConnection.changeAddress();
+//    }
 
     private void help(String arg) {
         System.out.println("available commands: " + commands.keySet().stream().collect(Collectors.joining(", ")));

@@ -1,0 +1,302 @@
+@startuml
+
+title __SERVER's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ApplicationProtocolConnection {
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      abstract class net.luminis.quic.server.ApplicationProtocolConnectionFactory {
+          {abstract} + createConnection()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ApplicationProtocolRegistry {
+          ~ registeredFactories : Map<String, ApplicationProtocolConnectionFactory>
+          ~ getRegisteredApplicationProtocols()
+          ~ registerApplicationProtocol()
+          ~ selectSupportedApplicationProtocol()
+          ~ startApplicationProtocolConnection()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ConnectionSource {
+          - dcid : byte[]
+          + ConnectionSource()
+          + equals()
+          + hashCode()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.Server {
+          {static} - CONNECTION_ID_LENGTH : int
+          {static} - MINIMUM_LONG_HEADER_LENGTH : int
+          - currentConnections : Map<ConnectionSource, ServerConnectionProxy>
+          - initalRtt : Integer
+          - requireRetry : boolean
+          - serverSocket : DatagramSocket
+          - supportedVersionIds : List<Integer>
+          - supportedVersions : List<Version>
+          + Server()
+          + Server()
+          + deregisterConnection()
+          {static} + main()
+          + registerConnection()
+          ~ process()
+          - createFileCSV()
+          - createNewConnection()
+          - initialWithUnspportedVersion()
+          - isExistingConnection()
+          - mightStartNewConnection()
+          - processLongHeaderPacket()
+          - processShortHeaderPacket()
+          - receiveLoop()
+          - registerApplicationLayerProtocols()
+          - removeConnection()
+          - sendVersionNegotiationPacket()
+          - start()
+          {static} - usageAndExit()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      interface net.luminis.quic.server.ServerConnection {
+          {abstract} + getInitialClientAddress()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ServerConnectionCandidate {
+          - clientAddress : InetSocketAddress
+          - dcid : byte[]
+          {static} - executor : ExecutorService
+          {static} - scheduledExecutor : ScheduledExecutorService
+          + ServerConnectionCandidate()
+          + getOriginalDestinationConnectionId()
+          + isClosed()
+          + parsePackets()
+          + terminate()
+          + toString()
+          ~ parseInitialPacket()
+          - createAndRegisterServerConnection()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ServerConnectionFactory {
+          - closeCallback : Consumer<byte[]>
+          - connectionIdLength : int
+          - initalRtt : int
+          - randomGenerator : SecureRandom
+          - requireRetry : boolean
+          - serverSocket : DatagramSocket
+          + ServerConnectionFactory()
+          + createNewConnection()
+          - generateNewConnectionId()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ServerConnectionImpl {
+          {static} - TOKEN_SIZE : int
+          - ackProcessors : List<FrameProcessor2<AckFrame>>
+          - addressValidated : boolean
+          - bytesReceived : long
+          - closeCallback : Consumer<byte[]>
+          - connectionId : byte[]
+          - initialClientAddress : InetSocketAddress
+          - initialMaxStreamData : int
+          - maxIdleTimeoutInSeconds : int
+          - maxOpenStreamsBidi : int
+          - maxOpenStreamsUni : int
+          - negotiatedApplicationProtocol : String
+          - originalDcid : byte[]
+          - peerConnectionId : byte[]
+          - random : Random
+          - retryRequired : boolean
+          - token : byte[]
+          + abortConnection()
+          + earlySecretsKnown()
+          + extensionsReceived()
+          + getConnectionId()
+          + getDestinationConnectionId()
+          + getInitialClientAddress()
+          + getInitialMaxStreamData()
+          + getMaxShortHeaderPacketOverhead()
+          + getOriginalDestinationConnectionId()
+          + getSourceConnectionId()
+          + handshakeFinished()
+          + handshakeSecretsKnown()
+          + isClosed()
+          + newSessionTicketReceived()
+          + parseAndProcessPackets()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + process()
+          + registerProcessor()
+          + setDefaultStreamReceiveBufferSize()
+          + setMaxAllowedBidirectionalStreams()
+          + setMaxAllowedUnidirectionalStreams()
+          + setPeerInitiatedStreamCallback()
+          + toString()
+          # ServerConnectionImpl()
+          # getAckGenerator()
+          # getSender()
+          # getSourceConnectionIdLength()
+          # getStreamManager()
+          # getTlsEngine()
+          # parsePacket()
+          # terminate()
+          - sendHandshakeDone()
+          - sendRetry()
+          - validateAndProcess()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ServerConnectionImpl.TlsMessageSender {
+          + send()
+          + send()
+          + send()
+          + send()
+          + send()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      interface net.luminis.quic.server.ServerConnectionProxy {
+          {abstract} + getOriginalDestinationConnectionId()
+          {abstract} + isClosed()
+          {abstract} + parsePackets()
+          {abstract} + terminate()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      interface net.luminis.quic.server.ServerConnectionRegistry {
+          {abstract} + deregisterConnection()
+          {abstract} + registerConnection()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ServerConnectionThread {
+          - connectionReceiverThread : Thread
+          - firstDatagram : ByteBuffer
+          - firstPacketReceived : Instant
+          - queue : BlockingQueue<ReceivedDatagram>
+          + ServerConnectionThread()
+          + getOriginalDestinationConnectionId()
+          + isClosed()
+          + parsePackets()
+          + terminate()
+          - process()
+      }
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    namespace server {
+      class net.luminis.quic.server.ServerConnectionThread.ReceivedDatagram {
+          ~ data : ByteBuffer
+          ~ datagramNumber : int
+          ~ timeReceived : Instant
+          + ReceivedDatagram()
+      }
+    }
+  }
+  
+
+  net.luminis.quic.server.Server .up.|> net.luminis.quic.server.ServerConnectionRegistry
+  net.luminis.quic.server.Server o-- net.luminis.quic.server.ApplicationProtocolRegistry : applicationProtocolRegistry
+  net.luminis.quic.server.Server o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.server.Server o-- net.luminis.quic.Receiver : receiver
+  net.luminis.quic.server.Server o-- net.luminis.quic.server.ServerConnectionFactory : serverConnectionFactory
+  net.luminis.quic.server.Server o-- net.luminis.tls.handshake.TlsServerEngineFactory : tlsEngineFactory
+  net.luminis.quic.server.ServerConnectionCandidate .up.|> net.luminis.quic.server.ServerConnectionProxy
+  net.luminis.quic.server.ServerConnectionCandidate o-- net.luminis.quic.server.ServerConnectionRegistry : connectionRegistry
+  net.luminis.quic.server.ServerConnectionCandidate o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.server.ServerConnectionCandidate o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.server.ServerConnectionCandidate o-- net.luminis.quic.server.ServerConnectionThread : registeredConnection
+  net.luminis.quic.server.ServerConnectionCandidate o-- net.luminis.quic.server.ServerConnectionFactory : serverConnectionFactory
+  net.luminis.quic.server.ServerConnectionFactory o-- net.luminis.quic.server.ApplicationProtocolRegistry : applicationProtocolRegistry
+  net.luminis.quic.server.ServerConnectionFactory o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.server.ServerConnectionFactory o-- net.luminis.tls.handshake.TlsServerEngineFactory : tlsServerEngineFactory
+  net.luminis.quic.server.ServerConnectionImpl .up.|> net.luminis.quic.server.ServerConnection
+  net.luminis.quic.server.ServerConnectionImpl .up.|> net.luminis.tls.handshake.TlsStatusEventHandler
+  net.luminis.quic.server.ServerConnectionImpl -up-|> net.luminis.quic.QuicConnectionImpl
+  net.luminis.quic.server.ServerConnectionImpl o-- net.luminis.quic.GlobalAckGenerator : ackGenerator
+  net.luminis.quic.server.ServerConnectionImpl o-- net.luminis.quic.server.ApplicationProtocolRegistry : applicationProtocolRegistry
+  net.luminis.quic.server.ServerConnectionImpl o-- net.luminis.quic.CSVLogger : csvLogger
+  net.luminis.quic.server.ServerConnectionImpl o-- net.luminis.quic.send.SenderImpl : sender
+  net.luminis.quic.server.ServerConnectionImpl o-- net.luminis.quic.stream.StreamManager : streamManager
+  net.luminis.quic.server.ServerConnectionImpl o-- net.luminis.tls.handshake.TlsServerEngine : tlsEngine
+  net.luminis.quic.server.ServerConnectionImpl +-down- net.luminis.quic.server.ServerConnectionImpl.TlsMessageSender
+  net.luminis.quic.server.ServerConnectionImpl.TlsMessageSender .up.|> net.luminis.tls.handshake.ServerMessageSender
+  net.luminis.quic.server.ServerConnectionThread .up.|> net.luminis.quic.server.ServerConnectionProxy
+  net.luminis.quic.server.ServerConnectionThread o-- net.luminis.quic.packet.InitialPacket : firstInitialPacket
+  net.luminis.quic.server.ServerConnectionThread o-- net.luminis.quic.server.ServerConnectionImpl : serverConnection
+  net.luminis.quic.server.ServerConnectionThread +-down- net.luminis.quic.server.ServerConnectionThread.ReceivedDatagram
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

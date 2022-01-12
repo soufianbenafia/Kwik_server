@@ -1,0 +1,991 @@
+@startuml
+
+title __QUIC's Class Diagram__\n
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.AckGenerator {
+        - ackSentWithPacket : Map<Long, AckFrame>
+        - acksNotSend : int
+        - newPacketsToAcknowledge : boolean
+        - newPacketsToAcknowlegdeSince : Instant
+        - packetsToAcknowledge : List<Long>
+        + AckGenerator()
+        + generateAck()
+        + generateAckForPacket()
+        + hasAckToSend()
+        + hasNewAckToSend()
+        + packetReceived()
+        + process()
+        + registerAckSendWithPacket()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.Bytes {
+        {static} + allZero()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.CSVLogger {
+        ~ DCIDRetryAnswer : String
+        ~ DCIDRetryPacket : String
+        ~ SCIDInitialPacket : String
+        ~ SCIDRetryAnswer : String
+        ~ SCIDRetryPacket : String
+        ~ counter : int
+        ~ ipAddressAndPortIWir : InetSocketAddress
+        ~ ipAddressAndPortInitialPacket : InetSocketAddress
+        ~ timeReceivedInitialPacket : Instant
+        ~ timeStampRetryAnswer : Instant
+        ~ timeStampRetrySend : Instant
+        ~ tokenAnswerRetry : String
+        ~ tokenRetry : String
+        ~ validated : String
+        + setDCIDRetryAnswer()
+        + setDCIDRetryPacket()
+        + setIpAddressAndPortIWir()
+        + setIpAddressAndPortInitialPacket()
+        + setSCIDInitialPacket()
+        + setSCIDRetryAnswer()
+        + setSCIDRetryPacket()
+        + setTimeReceivedInitialPacket()
+        + setTimeStampRetryAnswer()
+        + setTimeStampRetrySend()
+        + setTokenAnswerRetry()
+        + setTokenRetry()
+        + setValidated()
+        + write()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.CryptoStream {
+        - dataToSend : List<ByteBuffer>
+        - dataToSendOffset : int
+        - messagesReceived : List<Message>
+        - messagesSent : List<Message>
+        - msgSize : int
+        - msgSizeRead : boolean
+        - msgType : byte
+        - sendStreamSize : int
+        + CryptoStream()
+        + add()
+        + getTlsMessages()
+        + reset()
+        + toString()
+        + toStringReceived()
+        + toStringSent()
+        + write()
+        ~ quicExtensionsParser()
+        ~ write()
+        - retransmitCrypto()
+        - sendFrame()
+        - toStringWith()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.DecryptionException {
+        + toString()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum EarlyDataStatus {
+      Accepted
+      None
+      Refused
+      Requested
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum EncryptionLevel {
+      App
+      Handshake
+      Initial
+      ZeroRTT
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.FrameProcessor2 {
+        {abstract} + process()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.FrameProcessorRegistry {
+        {abstract} + registerProcessor()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.GlobalAckGenerator {
+        - ackGenerators : AckGenerator[]
+        + GlobalAckGenerator()
+        + discard()
+        + getAckGenerator()
+        + packetReceived()
+        + process()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum HandshakeState {
+      Completed
+      Confirmed
+      HasAppKeys
+      HasHandshakeKeys
+      Initial
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.HandshakeStateListener {
+        {abstract} + handshakeStateChangedEvent()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.IdleTimer {
+        - enabled : boolean
+        - lastAction : Instant
+        - ptoSupplier : IntSupplier
+        - timeout : long
+        - timer : Timer
+        - timerResolution : int
+        + IdleTimer()
+        + IdleTimer()
+        + packetProcessed()
+        + packetSent()
+        + setPtoSupplier()
+        + shutdown()
+        ~ setIdleTimeout()
+        - checkIdle()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.ImplementationError {
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.InvalidIntegerEncodingException {
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.InvalidPacketException {
+        + InvalidPacketException()
+        + InvalidPacketException()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.KeepAliveActor {
+        - keepAliveTime : int
+        - peerIdleTimeout : int
+        - pingInterval : int
+        - scheduledTask : ScheduledFuture<?>
+        - scheduler : ScheduledExecutorService
+        - started : Instant
+        + KeepAliveActor()
+        + shutdown()
+        - ping()
+        - scheduleNextPing()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.MissingKeysException {
+        + MissingKeysException()
+        + toString()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.NotYetImplementedException {
+        + NotYetImplementedException()
+        + NotYetImplementedException()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.PacketProcessor {
+        {abstract} + process()
+        {abstract} + process()
+        {abstract} + process()
+        {abstract} + process()
+        {abstract} + process()
+        {abstract} + process()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum ProcessResult {
+      Abort
+      Continue
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum PnSpace {
+      App
+      Handshake
+      Initial
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.ProtocolError {
+        + ProtocolError()
+        + ProtocolError()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.QuicClientConnection {
+        {abstract} + connect()
+        {abstract} + connect()
+        {abstract} + connect()
+        {abstract} + getLocalAddress()
+        {abstract} + getNewSessionTickets()
+        {abstract} + getServerAddress()
+        {abstract} + getServerCertificateChain()
+        {abstract} + isConnected()
+        {abstract} + keepAlive()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicClientConnection.StreamEarlyData {
+        ~ closeOutput : boolean
+        ~ data : byte[]
+        + StreamEarlyData()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicClientConnectionImpl {
+        - ackProcessors : List<FrameProcessor2<AckFrame>>
+        - applicationProtocol : String
+        - cipherSuites : List<CipherSuite>
+        - clientCertificate : X509Certificate
+        - clientCertificateKey : PrivateKey
+        - clientHelloEnlargement : Integer
+        - handshakeFinishedCondition : CountDownLatch
+        - host : String
+        - ignoreVersionNegotiation : boolean
+        - newSessionTickets : List<QuicSessionTicket>
+        - port : int
+        - processedRetryPacket : boolean
+        - receiverThread : Thread
+        - serverAddress : InetAddress
+        - socket : DatagramSocket
+        - token : byte[]
+        + abortConnection()
+        + addNewSessionTicket()
+        + changeAddress()
+        + connect()
+        + connect()
+        + connect()
+        + earlySecretsKnown()
+        + extensionsReceived()
+        + getDestinationConnectionId()
+        + getDestinationConnectionIds()
+        + getEarlyDataStatus()
+        + getFlowController()
+        + getInitialMaxStreamData()
+        + getLocalAddress()
+        + getMaxShortHeaderPacketOverhead()
+        + getNewSessionTickets()
+        + getPeerTransportParameters()
+        + getServerAddress()
+        + getServerCertificateChain()
+        + getSourceConnectionId()
+        + getSourceConnectionIds()
+        + getTransportParameters()
+        + getUri()
+        + handshakeFinished()
+        + handshakeSecretsKnown()
+        + hasHandshakeKeys()
+        + isConnected()
+        + keepAlive()
+        {static} + newBuilder()
+        + newConnectionIds()
+        + newSessionTicketReceived()
+        + nextDestinationConnectionId()
+        + ping()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + registerProcessor()
+        + retireDestinationConnectionId()
+        + setDefaultStreamReceiveBufferSize()
+        + setEarlyDataStatus()
+        + setMaxAllowedBidirectionalStreams()
+        + setMaxAllowedUnidirectionalStreams()
+        + setPeerInitiatedStreamCallback()
+        + trustAll()
+        + updateKeys()
+        # checkForStatelessResetToken()
+        # getAckGenerator()
+        # getSender()
+        # getSourceConnectionIdLength()
+        # getStreamManager()
+        # getTlsEngine()
+        # immediateCloseWithError()
+        # registerNewDestinationConnectionId()
+        # terminate()
+        ~ setPeerTransportParameters()
+        - QuicClientConnectionImpl()
+        - abortHandshake()
+        - discard()
+        - enableQuantumReadinessTest()
+        - generateInitialKeys()
+        - receiveAndProcessPackets()
+        - retireSourceConnectionId()
+        - sendEarlyData()
+        - setPeerTransportParameters()
+        - startHandshake()
+        - startReceiverLoop()
+        - verifyConnectionIds()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.QuicClientConnectionImpl.Builder {
+        {abstract} + build()
+        {abstract} + cipherSuite()
+        {abstract} + clientCertificate()
+        {abstract} + clientCertificateKey()
+        {abstract} + connectTimeout()
+        {abstract} + connectionIdLength()
+        {abstract} + initialRtt()
+        {abstract} + logger()
+        {abstract} + noServerCertificateCheck()
+        {abstract} + proxy()
+        {abstract} + quantumReadinessTest()
+        {abstract} + secrets()
+        {abstract} + sessionTicket()
+        {abstract} + uri()
+        {abstract} + version()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicClientConnectionImpl.BuilderImpl {
+        - cipherSuites : List<CipherSuite>
+        - clientCertificate : X509Certificate
+        - clientCertificateKey : PrivateKey
+        - connectionIdLength : Integer
+        - host : String
+        - initialRtt : Integer
+        - omitCertificateCheck : boolean
+        - port : int
+        - proxyHost : String
+        - quantumReadinessTest : Integer
+        - secretsFile : Path
+        + build()
+        + cipherSuite()
+        + clientCertificate()
+        + clientCertificateKey()
+        + connectTimeout()
+        + connectionIdLength()
+        + initialRtt()
+        + logger()
+        + noServerCertificateCheck()
+        + proxy()
+        + quantumReadinessTest()
+        + secrets()
+        + sessionTicket()
+        + uri()
+        + version()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.QuicConnection {
+        {abstract} + close()
+        {abstract} + close()
+        {abstract} + createStream()
+        {abstract} + getQuicVersion()
+        {abstract} + getStats()
+        {abstract} + setDefaultStreamReceiveBufferSize()
+        {abstract} + setMaxAllowedBidirectionalStreams()
+        {abstract} + setMaxAllowedUnidirectionalStreams()
+        {abstract} + setPeerInitiatedStreamCallback()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicConnectionBuilder {
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    abstract class net.luminis.quic.QuicConnectionImpl {
+        # cryptoStreams : List<CryptoStream>
+        # flowControlIncrement : long
+        # flowControlLastAdvertised : long
+        # flowControlMax : long
+        # handshakeStateListeners : List<HandshakeStateListener>
+        # largestPacketNumber : long
+        # postProcessingActions : List<Runnable>
+        - scheduler : ScheduledExecutorService
+        {abstract} + abortConnection()
+        + addHandshakeStateListener()
+        + close()
+        + close()
+        + createStream()
+        {abstract} + getDestinationConnectionId()
+        + getIdleTimer()
+        {abstract} + getInitialMaxStreamData()
+        {static} + getMaxPacketSize()
+        {abstract} + getMaxShortHeaderPacketOverhead()
+        + getQuicVersion()
+        + getRole()
+        {abstract} + getSourceConnectionId()
+        + getStats()
+        + parseAndProcessPackets()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + process()
+        + send()
+        + send()
+        + send()
+        + send()
+        + send()
+        + updateConnectionFlowControl()
+        # QuicConnectionImpl()
+        # checkForStatelessResetToken()
+        # determineClosingErrorMessage()
+        # determineIdleTimeout()
+        # enterDrainingState()
+        {abstract} # getAckGenerator()
+        # getCryptoStream()
+        {abstract} # getSender()
+        {abstract} # getSourceConnectionIdLength()
+        {abstract} # getStreamManager()
+        {abstract} # getTlsEngine()
+        # handlePacketInClosingState()
+        # handlePeerClosing()
+        # immediateClose()
+        # immediateCloseWithError()
+        # parsePacket()
+        # processFrames()
+        # processPacket()
+        # quicError()
+        # silentlyCloseConnection()
+        # terminate()
+        - createLongHeaderPacket()
+        - drain()
+        - schedule()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum Status {
+      Closed
+      Closing
+      Connected
+      Created
+      Draining
+      Failed
+      Handshaking
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicConstants {
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum IpVersion {
+      IPv4
+      IPv6
+      value
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum TransportErrorCode {
+      AEAD_LIMIT_REACHED
+      APPLICATION_ERROR
+      CONNECTION_ID_LIMIT_ERROR
+      CONNECTION_REFUSED
+      CRYPTO_BUFFER_EXCEEDED
+      CRYPTO_ERROR
+      FINAL_SIZE_ERROR
+      FLOW_CONTROL_ERROR
+      FRAME_ENCODING_ERROR
+      INTERNAL_ERROR
+      INVALID_TOKEN
+      KEY_UPDATE_ERROR
+      NO_ERROR
+      PROTOCOL_VIOLATION
+      STREAM_LIMIT_ERROR
+      STREAM_STATE_ERROR
+      TRANSPORT_PARAMETER_ERROR
+      value
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum TransportParameterId {
+      ack_delay_exponent
+      active_connection_id_limit
+      disable_active_migration
+      initial_max_data
+      initial_max_stream_data_bidi_local
+      initial_max_stream_data_bidi_remote
+      initial_max_stream_data_uni
+      initial_max_streams_bidi
+      initial_max_streams_uni
+      initial_source_connection_id
+      max_ack_delay
+      max_idle_timeout
+      max_udp_payload_size
+      original_destination_connection_id
+      preferred_address
+      retry_source_connection_id
+      stateless_reset_token
+      value
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum TransportParameterIdPreDraft17 {
+      ack_delay_exponent
+      disable_migration
+      idle_timeout
+      initial_max_bidi_streams
+      initial_max_data
+      initial_max_stream_data_bidi_local
+      initial_max_stream_data_bidi_remote
+      initial_max_stream_data_uni
+      initial_max_uni_streams
+      max_ack_delay
+      max_packet_size
+      original_connection_id
+      preferred_address
+      stateless_reset_token
+      value
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicError {
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicRuntimeException {
+        + QuicRuntimeException()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.QuicSessionTicket {
+        {static} - SERIALIZED_SIZE : int
+        - disableActiveMigration : boolean
+        - initialMaxData : long
+        - initialMaxStreamDataBidiLocal : long
+        - initialMaxStreamDataBidiRemote : long
+        - initialMaxStreamDataUni : long
+        - initialMaxStreamsBidi : long
+        - initialMaxStreamsUni : long
+        - maxAckDelay : int
+        - maxIdleTimeout : long
+        - maxPacketSize : int
+        + QuicSessionTicket()
+        + copyTo()
+        {static} + deserialize()
+        + getDisableActiveMigration()
+        + getInitialMaxData()
+        + getInitialMaxStreamDataBidiLocal()
+        + getInitialMaxStreamDataBidiRemote()
+        + getInitialMaxStreamDataUni()
+        + getInitialMaxStreamsBidi()
+        + getInitialMaxStreamsUni()
+        + getMaxAckDelay()
+        + getMaxIdleTimeout()
+        + getMaxPacketSize()
+        + getPSK()
+        + getSessionTicketIdentity()
+        + getTicketAgeAdd()
+        + getTicketCreationDate()
+        + serialize()
+        ~ QuicSessionTicket()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    interface net.luminis.quic.QuicStream {
+        {abstract} + closeInput()
+        {abstract} + getInputStream()
+        {abstract} + getOutputStream()
+        {abstract} + getStreamId()
+        + isBidirectional()
+        {abstract} + isClientInitiatedBidirectional()
+        {abstract} + isServerInitiatedBidirectional()
+        {abstract} + isUnidirectional()
+        {abstract} + resetStream()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.RawPacket {
+        - data : ByteBuffer
+        - number : int
+        - receivedPacket : DatagramPacket
+        - timeReceived : Instant
+        + RawPacket()
+        + getAddress()
+        + getData()
+        + getLength()
+        + getNumber()
+        + getPort()
+        + getTimeReceived()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.Receiver {
+        {static} + MAX_DATAGRAM_SIZE : int
+        - abortCallback : Consumer<Throwable>
+        - changing : boolean
+        - isClosing : boolean
+        - receivedPacketsQueue : BlockingQueue<RawPacket>
+        - receiverThread : Thread
+        - socket : DatagramSocket
+        + Receiver()
+        + changeAddress()
+        + get()
+        + get()
+        + hasMore()
+        + shutdown()
+        + start()
+        - run()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum Role {
+      Client
+      Server
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.Statistics {
+        + Statistics()
+        + toString()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.TransportError {
+        + TransportError()
+        + getTransportErrorCode()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.TransportParameters {
+        - ackDelayExponent : int
+        - activeConnectionIdLimit : int
+        - disableMigration : boolean
+        - initialMaxData : long
+        - initialMaxStreamDataBidiLocal : long
+        - initialMaxStreamDataBidiRemote : long
+        - initialMaxStreamDataUni : long
+        - initialMaxStreamsBidi : long
+        - initialMaxStreamsUni : long
+        - initialSourceConnectionId : byte[]
+        - maxAckDelay : int
+        - maxIdleTimeout : long
+        - maxUdpPayloadSize : int
+        - originalDestinationConnectionId : byte[]
+        - retrySourceConnectionId : byte[]
+        - statelessResetToken : byte[]
+        + TransportParameters()
+        + TransportParameters()
+        + getAckDelayExponent()
+        + getActiveConnectionIdLimit()
+        + getDisableMigration()
+        + getInitialMaxData()
+        + getInitialMaxStreamDataBidiLocal()
+        + getInitialMaxStreamDataBidiRemote()
+        + getInitialMaxStreamDataUni()
+        + getInitialMaxStreamsBidi()
+        + getInitialMaxStreamsUni()
+        + getInitialSourceConnectionId()
+        + getMaxAckDelay()
+        + getMaxIdleTimeout()
+        + getMaxUdpPayloadSize()
+        + getOriginalDestinationConnectionId()
+        + getPreferredAddress()
+        + getRetrySourceConnectionId()
+        + getStatelessResetToken()
+        + setAckDelayExponent()
+        + setActiveConnectionIdLimit()
+        + setDisableMigration()
+        + setInitialMaxData()
+        + setInitialMaxStreamData()
+        + setInitialMaxStreamDataBidiLocal()
+        + setInitialMaxStreamDataBidiRemote()
+        + setInitialMaxStreamDataUni()
+        + setInitialMaxStreamsBidi()
+        + setInitialMaxStreamsUni()
+        + setInitialSourceConnectionId()
+        + setMaxAckDelay()
+        + setMaxIdleTimeout()
+        + setMaxUdpPayloadSize()
+        + setOriginalDestinationConnectionId()
+        + setPreferredAddress()
+        + setRetrySourceConnectionId()
+        + setStatelessResetToken()
+        + toString()
+        - formatCid()
+        - setDefaults()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.TransportParameters.PreferredAddress {
+        ~ connectionId : byte[]
+        ~ ip4 : InetAddress
+        ~ ip4Port : int
+        ~ ip6 : InetAddress
+        ~ ip6Port : int
+        ~ statelessResetToken : byte[]
+        + getConnectionId()
+        + getIp4()
+        + getIp4Port()
+        + getIp6()
+        + getIp6Port()
+        + getStatelessResetToken()
+        + setConnectionId()
+        + setIp4()
+        + setIp4Port()
+        + setIp6()
+        + setIp6Port()
+        + setStatelessResetToken()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.UnknownVersionException {
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.VariableLengthInteger {
+        {static} + bytesNeeded()
+        {static} + encode()
+        {static} + encode()
+        {static} + main()
+        {static} + parse()
+        {static} + parse()
+        {static} + parseLong()
+        {static} + parseLong()
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    enum Version {
+      GoogleQuic_44
+      GoogleQuic_45
+      IETF_draft_11
+      IETF_draft_12
+      IETF_draft_13
+      IETF_draft_14
+      IETF_draft_15
+      IETF_draft_16
+      IETF_draft_17
+      IETF_draft_18
+      IETF_draft_19
+      IETF_draft_20
+      IETF_draft_21
+      IETF_draft_22
+      IETF_draft_23
+      IETF_draft_24
+      IETF_draft_25
+      IETF_draft_26
+      IETF_draft_27
+      IETF_draft_28
+      IETF_draft_29
+      IETF_draft_30
+      IETF_draft_31
+      IETF_draft_32
+      QUIC_version_1
+      reserved_1
+      versionId
+    }
+  }
+  
+
+  namespace net.luminis.quic {
+    class net.luminis.quic.VersionNegotiationFailure {
+    }
+  }
+  
+
+  net.luminis.quic.AckGenerator o-- net.luminis.quic.PnSpace : pnSpace
+  net.luminis.quic.AckGenerator o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.AckGenerator o-- net.luminis.quic.send.Sender : sender
+  net.luminis.quic.CryptoStream -up-|> net.luminis.quic.stream.BaseStream
+  net.luminis.quic.CryptoStream o-- net.luminis.quic.crypto.ConnectionSecrets : connectionSecrets
+  net.luminis.quic.CryptoStream o-- net.luminis.quic.EncryptionLevel : encryptionLevel
+  net.luminis.quic.CryptoStream o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.CryptoStream o-- net.luminis.quic.Role : peerRole
+  net.luminis.quic.CryptoStream o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.CryptoStream o-- net.luminis.quic.send.Sender : sender
+  net.luminis.quic.CryptoStream o-- net.luminis.tls.handshake.TlsEngine : tlsEngine
+  net.luminis.quic.CryptoStream o-- net.luminis.tls.handshake.TlsMessageParser : tlsMessageParser
+  net.luminis.quic.CryptoStream o-- net.luminis.tls.ProtectionKeysType : tlsProtectionType
+  net.luminis.quic.GlobalAckGenerator .up.|> net.luminis.quic.FrameProcessor2
+  net.luminis.quic.IdleTimer o-- net.luminis.quic.QuicConnectionImpl : connection
+  net.luminis.quic.IdleTimer o-- net.luminis.quic.CSVLogger : csvLogger
+  net.luminis.quic.IdleTimer o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.KeepAliveActor o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.KeepAliveActor o-- net.luminis.quic.send.Sender : sender
+  net.luminis.quic.MissingKeysException o-- net.luminis.quic.EncryptionLevel : encryptionLevel
+  net.luminis.quic.PacketProcessor +-down- net.luminis.quic.PacketProcessor.ProcessResult
+  net.luminis.quic.QuicClientConnection +-down- net.luminis.quic.QuicClientConnection.StreamEarlyData
+  net.luminis.quic.QuicClientConnectionImpl .up.|> net.luminis.quic.FrameProcessorRegistry
+  net.luminis.quic.QuicClientConnectionImpl .up.|> net.luminis.quic.PacketProcessor
+  net.luminis.quic.QuicClientConnectionImpl .up.|> net.luminis.quic.QuicClientConnection
+  net.luminis.quic.QuicClientConnectionImpl .up.|> net.luminis.quic.frame.FrameProcessor3
+  net.luminis.quic.QuicClientConnectionImpl .up.|> net.luminis.tls.handshake.TlsStatusEventHandler
+  net.luminis.quic.QuicClientConnectionImpl -up-|> net.luminis.quic.QuicConnectionImpl
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.GlobalAckGenerator : ackGenerator
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.cid.DestinationConnectionIdRegistry : destConnectionIds
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.EarlyDataStatus : earlyDataStatus
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.KeepAliveActor : keepAliveActor
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.TransportParameters : peerTransportParams
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.Receiver : receiver
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.send.SenderImpl : sender
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.QuicSessionTicket : sessionTicket
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.cid.SourceConnectionIdRegistry : sourceConnectionIds
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.quic.stream.StreamManager : streamManager
+  net.luminis.quic.QuicClientConnectionImpl o-- net.luminis.tls.handshake.TlsClientEngine : tlsEngine
+  net.luminis.quic.QuicClientConnectionImpl +-down- net.luminis.quic.QuicClientConnectionImpl.Builder
+  net.luminis.quic.QuicClientConnectionImpl +-down- net.luminis.quic.QuicClientConnectionImpl.BuilderImpl
+  net.luminis.quic.QuicClientConnectionImpl.BuilderImpl .up.|> net.luminis.quic.QuicClientConnectionImpl.Builder
+  net.luminis.quic.QuicClientConnectionImpl.BuilderImpl o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.QuicClientConnectionImpl.BuilderImpl o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.QuicClientConnectionImpl.BuilderImpl o-- net.luminis.quic.QuicSessionTicket : sessionTicket
+  net.luminis.quic.QuicConnectionImpl .up.|> net.luminis.quic.FrameProcessorRegistry
+  net.luminis.quic.QuicConnectionImpl .up.|> net.luminis.quic.PacketProcessor
+  net.luminis.quic.QuicConnectionImpl .up.|> net.luminis.quic.QuicConnection
+  net.luminis.quic.QuicConnectionImpl .up.|> net.luminis.quic.frame.FrameProcessor3
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.crypto.ConnectionSecrets : connectionSecrets
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.QuicConnectionImpl.Status : connectionState
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.stream.FlowControl : flowController
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.HandshakeState : handshakeState
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.IdleTimer : idleTimer
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.Version : quicVersion
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.TransportParameters : transportParams
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.util.RateLimiter : closeFramesSendRateLimiter
+  net.luminis.quic.QuicConnectionImpl o-- net.luminis.quic.Role : role
+  net.luminis.quic.QuicConnectionImpl +-down- net.luminis.quic.QuicConnectionImpl.Status
+  net.luminis.quic.QuicConstants +-down- net.luminis.quic.QuicConstants.IpVersion
+  net.luminis.quic.QuicConstants +-down- net.luminis.quic.QuicConstants.TransportErrorCode
+  net.luminis.quic.QuicConstants +-down- net.luminis.quic.QuicConstants.TransportParameterId
+  net.luminis.quic.QuicConstants +-down- net.luminis.quic.QuicConstants.TransportParameterIdPreDraft17
+  net.luminis.quic.QuicSessionTicket -up-|> net.luminis.tls.NewSessionTicket
+  net.luminis.quic.QuicSessionTicket o-- net.luminis.tls.NewSessionTicket : wrappedTicket
+  net.luminis.quic.Receiver o-- net.luminis.quic.log.Logger : log
+  net.luminis.quic.Statistics o-- net.luminis.quic.send.SendStatistics : senderStatistics
+  net.luminis.quic.TransportError -up-|> net.luminis.quic.QuicError
+  net.luminis.quic.TransportError o-- net.luminis.quic.QuicConstants.TransportErrorCode : transportErrorCode
+  net.luminis.quic.TransportParameters o-- net.luminis.quic.TransportParameters.PreferredAddress : preferredAddress
+  net.luminis.quic.TransportParameters +-down- net.luminis.quic.TransportParameters.PreferredAddress
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

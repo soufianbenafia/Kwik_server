@@ -24,8 +24,8 @@ import net.luminis.quic.log.LogProxy;
 import net.luminis.quic.log.Logger;
 import net.luminis.quic.packet.*;
 import net.luminis.quic.send.SenderImpl;
+import net.luminis.quic.send.SenderImplServer;
 import net.luminis.quic.stream.FlowControl;
-import net.luminis.quic.stream.QuicStreamImpl;
 import net.luminis.quic.stream.StreamManager;
 import net.luminis.quic.tls.QuicTransportParametersExtension;
 import net.luminis.tls.NewSessionTicket;
@@ -36,6 +36,10 @@ import net.luminis.tls.extension.ApplicationLayerProtocolNegotiationExtension;
 import net.luminis.tls.extension.Extension;
 import net.luminis.tls.handshake.*;
 import net.luminis.tls.util.ByteUtils;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.packet.IpV4Packet;
+import org.pcap4j.packet.Packet;
+import org.pcap4j.packet.UdpPacket;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -81,20 +85,24 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
     private volatile long bytesReceived;
     private volatile boolean addressValidated;
     private final CSVLogger csvLogger;
+    private Packet toSendPacket;
+    private final PcapNetworkInterface nif;
 
-
-    protected ServerConnectionImpl(Version quicVersion, DatagramSocket serverSocket, InetSocketAddress initialClientAddress,
+    protected ServerConnectionImpl(Version quicVersion, DatagramSocket serverSocket, InetSocketAddress initialClientAddress, Packet toSendPacket, PcapNetworkInterface nif,
                                    byte[] connectionId, byte[] dcid, byte[] originalDcid, TlsServerEngineFactory tlsServerEngineFactory,
                                    boolean retryRequired, ApplicationProtocolRegistry applicationProtocolRegistry,
-                                   Integer initialRtt, Consumer<byte[]> closeCallback, Logger log,Instant instant) {
+                                   Integer initialRtt, Consumer<byte[]> closeCallback, Logger log, Instant instant) {
         super(quicVersion, Role.Server, null, new LogProxy(log, originalDcid));
         this.csvLogger = new CSVLogger();
         this.initialClientAddress = initialClientAddress;
+        this.toSendPacket = toSendPacket;
+        this.nif = nif;
         csvLogger.setIpAddressAndPortInitialPacket(initialClientAddress);
         csvLogger.setSCIDInitialPacket(ByteUtils.bytesToHex(dcid));
         csvLogger.setDCIDRetryPacket(ByteUtils.bytesToHex(dcid));
         csvLogger.setSCIDRetryAnswer(ByteUtils.bytesToHex(dcid));
-        csvLogger.setIpAddressAndPortIWir(new InetSocketAddress(serverSocket.getLocalAddress(),serverSocket.getLocalPort()));
+        csvLogger.setIpAddressAndPortIWir(new InetSocketAddress(toSendPacket.get(IpV4Packet.class).getHeader().getDstAddr()
+                ,toSendPacket.get(UdpPacket.class).getHeader().getDstPort().valueAsInt()));
         csvLogger.setTimeReceivedInitialPacket(instant);
         String connectionIDD = ByteUtils.bytesToHex(connectionId);
         String dcidman = ByteUtils.bytesToHex(dcid);
@@ -108,7 +116,7 @@ public class ServerConnectionImpl extends QuicConnectionImpl implements ServerCo
         tlsEngine = tlsServerEngineFactory.createServerEngine(new TlsMessageSender(), this);
 
         idleTimer = new IdleTimer(this, log);
-        sender = new SenderImpl(quicVersion, getMaxPacketSize(), serverSocket, initialClientAddress,this, initialRtt, this.log);
+        sender = new SenderImpl(quicVersion, getMaxPacketSize(), serverSocket, initialClientAddress,toSendPacket,nif,this, initialRtt, this.log);
         if (! retryRequired) {
             sender.setAntiAmplificationLimit(0);
         }
